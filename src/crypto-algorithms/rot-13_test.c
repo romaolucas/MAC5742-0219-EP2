@@ -13,7 +13,9 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "rot-13.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
@@ -34,6 +36,36 @@ int rot13_test()
     pass = pass && !strcmp(text, buf);
 
     return(pass);
+}
+
+void enc_dec_file(char *filename) {
+    char *data;
+    char *enc_data;
+
+    struct stat st;
+
+    if (stat(filename, &st) == 0) {
+        data = (char *) malloc(sizeof(char) * st.size);
+        enc_data = (char *) malloc(sizeof(char) * st.size);
+    }
+
+    File *file = fopen(filename, "rb");
+
+    if (data != NULL && file) {
+        int current_byte = 0;
+        while (fread(&data[current_byte], sizeof(char), 1, file) == 1) {
+            current_byte++;
+        }
+    }
+    strcpy(data, enc_data);
+    rot13(enc_data);
+
+    File *enc_file = fopen("moby_dick_enc.txt", "wb+");
+
+    fwrite(enc_data, sizeof(char) * st.size, 1, enc_file);
+
+    fclose(file);
+    fclose(enc_data);
 }
 
 int main()
