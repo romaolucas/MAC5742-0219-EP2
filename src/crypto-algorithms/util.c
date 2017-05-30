@@ -19,6 +19,7 @@ void read_file(char *filename, BYTE *data) {
             current_byte++;        
         }
     }
+    printf("%s\n", data);
 
     fclose(file);
 }
