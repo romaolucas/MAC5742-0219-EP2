@@ -1,7 +1,7 @@
-OUTPUT=des
+OUTPUT=rot-13
 
 CC=gcc
-CC_OPT=
+CC_OPT=-g
 
 .PHONY: all
 all: $(OUTPUT)

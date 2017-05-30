@@ -1,5 +1,5 @@
 /*********************************************************************
-* Filename:   rot-13_test.c
+* FILEname:   rot-13_test.c
 * Author:     Brad Conte (brad AT bradconte.com)
 * Copyright:
 * Disclaimer: This code is presented "as is" without any guarantees.
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "rot-13.h"
 
@@ -45,11 +46,10 @@ void enc_dec_file(char *filename) {
     struct stat st;
 
     if (stat(filename, &st) == 0) {
-        data = (char *) malloc(sizeof(char) * st.size);
-        enc_data = (char *) malloc(sizeof(char) * st.size);
+        data = (char *) malloc(sizeof(char) * st.st_size);
     }
 
-    File *file = fopen(filename, "rb");
+    FILE *file = fopen(filename, "rb");
 
     if (data != NULL && file) {
         int current_byte = 0;
@@ -57,20 +57,19 @@ void enc_dec_file(char *filename) {
             current_byte++;
         }
     }
-    strcpy(data, enc_data);
+    enc_data = (char *) malloc(sizeof(char) * st.st_size);
     rot13(enc_data);
-
-    File *enc_file = fopen("moby_dick_enc.txt", "wb+");
-
-    fwrite(enc_data, sizeof(char) * st.size, 1, enc_file);
-
+    FILE *enc_file = fopen("moby_dick_enc.txt", "wb+");
+    fwrite(enc_data, sizeof(char) * st.st_size, 1, enc_file);
+    free(data);
+    free(enc_data);
     fclose(file);
-    fclose(enc_data);
+    fclose(enc_file);
 }
 
 int main()
 {
     printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
-
+    enc_dec_file("sample_files/moby_dick.txt");
     return(0);
 }
