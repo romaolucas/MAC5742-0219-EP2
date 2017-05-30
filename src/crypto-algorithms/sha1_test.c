@@ -53,8 +53,7 @@ int sha1_test()
 }
 
 
-void sha1_file() {
-    char *filename = "sample_files/moby_dick.txt";
+void sha1_file(char *filename) {
     BYTE *data;
     BYTE hash[SHA1_BLOCK_SIZE];
     SHA1_CTX ctx;
@@ -86,9 +85,13 @@ void sha1_file() {
     free(data);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    printf("SHA1 tests: %s\n", sha1_test() ? "SUCCEEDED" : "FAILED");
-    sha1_file();
+    //printf("SHA1 tests: %s\n", sha1_test() ? "SUCCEEDED" : "FAILED");
+    if (argc != 2) {
+        printf("uso: ./sha1 nome-arquivo\n");
+        exit(EXIT_FAILURE);
+    }
+    sha1_file(argv[1]);
     return(0);
 }

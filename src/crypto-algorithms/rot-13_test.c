@@ -71,11 +71,10 @@ void enc_dec_file(char *filename, char *enc_filename) {
 int main(int argc, char *argv[])
 {
     printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
-    if (argc == 3) {
-        enc_dec_file(argv[1], argv[2]);
-    } else {
+    if (argc != 3) {
         printf("uso: \n");
         printf("./rot-13 nome_arquivo nome_arquivo_criptografado\n");
     }
+    enc_dec_file(argv[1], argv[2]);
     return(0);
 }
