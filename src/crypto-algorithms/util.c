@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <string.h>
 
-void read_file(char *filename) {
+BYTE * read_file(char *filename) {
 	BYTE *data;
     struct stat st;
 
@@ -22,4 +22,5 @@ void read_file(char *filename) {
     }
 
     fclose(file);
+    return data;
 }
