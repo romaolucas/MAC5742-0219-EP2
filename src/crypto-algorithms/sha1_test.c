@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include "sha1.h"
+#include "util.c"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int sha1_test()
@@ -52,26 +53,18 @@ int sha1_test()
     return(pass);
 }
 
-
-void sha1_file(char *filename) {
+int main(int argc, char *argv[])
+{
+    //printf("SHA1 tests: %s\n", sha1_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data;
     BYTE hash[SHA1_BLOCK_SIZE];
     SHA1_CTX ctx;
-
-    struct stat st;
-
-    if (stat(filename, &st) == 0) {
-        data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    
+    if (argc != 2) {
+        printf("uso: ./sha1 nome-arquivo\n");
+        exit(EXIT_FAILURE);
     }
-
-    FILE *file = fopen(filename, "rb");
-
-    if (data != NULL && file) {
-        int current_byte = 0;
-        while (fread(&data[current_byte], sizeof(BYTE), 1, file) == 1) {
-            current_byte++;        
-        }
-    }
+    data = read_file(argv[1]);
 
     sha1_init(&ctx);
     sha1_update(&ctx, data, strlen(data));
@@ -81,17 +74,7 @@ void sha1_file(char *filename) {
         printf("%02x", hash[i]);
     }
     printf("\n");
-    fclose(file);
-    free(data);
-}
 
-int main(int argc, char *argv[])
-{
-    //printf("SHA1 tests: %s\n", sha1_test() ? "SUCCEEDED" : "FAILED");
-    if (argc != 2) {
-        printf("uso: ./sha1 nome-arquivo\n");
-        exit(EXIT_FAILURE);
-    }
-    sha1_file(argv[1]);
+    free(data);
     return(0);
 }
