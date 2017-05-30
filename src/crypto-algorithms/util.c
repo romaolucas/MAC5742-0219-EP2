@@ -4,7 +4,8 @@
 #include <sys/stat.h>
 #include <string.h>
 
-void read_file(char *filename, BYTE *data) {
+void read_file(char *filename) {
+	BYTE *data;
     struct stat st;
 
     if (stat(filename, &st) == 0) {
@@ -19,6 +20,6 @@ void read_file(char *filename, BYTE *data) {
             current_byte++;        
         }
     }
-    
+
     fclose(file);
 }
