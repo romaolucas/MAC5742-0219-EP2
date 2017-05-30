@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "rot-13.h"
+#include "util.c"
 #define BYTE unsigned char
 
 /*********************** FUNCTION DEFINITIONS ***********************/
@@ -40,43 +41,31 @@ int rot13_test()
     return(pass);
 }
 
-void enc_dec_file(char *filename, char *enc_filename) {
-    BYTE *data;
+void dec_file(char *enc_filename, BYTE *data) {
     BYTE *enc_data;
-
-    struct stat st;
-
-    if (stat(filename, &st) == 0) {
-        data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
-    }
-
-    FILE *file = fopen(filename, "rb");
-
-    if (data != NULL && file) {
-        int current_byte = 0;
-        while (fread(&data[current_byte], sizeof(BYTE), 1, file) == 1) {
-            current_byte++;
-        }
-    }
     enc_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
     strcpy(enc_data, data);
     rot13(enc_data);
     FILE *enc_file = fopen(enc_filename, "wb+");
     fwrite(enc_data, sizeof(BYTE) * st.st_size, 1, enc_file);
-    free(data);
-    free(enc_data);
-    fclose(file);
     fclose(enc_file);
 }
 
 int main(int argc, char *argv[])
 {
-    printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
+    //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
+    BYTE *data;
+
+    struct stat st;
     if (argc != 3) {
         printf("uso: \n");
         printf("./rot-13 nome_arquivo nome_arquivo_criptografado\n");
         exit(EXIT_FAILURE);
     }
-    enc_dec_file(argv[1], argv[2]);
+    
+    data = read_file(argv[1]);
+    dec_file(argv[2], data);
+    free(data);
+    free(enc_data);
     return(0);
 }
