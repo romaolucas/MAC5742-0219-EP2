@@ -1,4 +1,4 @@
-OUTPUT=sha1
+OUTPUT=md5
 
 CC=gcc
 CC_OPT=-g

@@ -52,9 +52,46 @@ int md5_test()
     return(pass);
 }
 
+void md5_file(char *filename) {
+    BYTE *data;
+    BYTE hash[SHA1_BLOCK_SIZE];
+    MD5_CTX ctx;
+
+    struct stat st;
+
+    if (stat(filename, &st) == 0) {
+        data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    }
+
+    FILE *file = fopen(filename, "rb");
+
+    if (data != NULL && file) {
+        int current_byte = 0;
+        while (fread(&data[current_byte], sizeof(BYTE), 1, file) == 1) {
+            current_byte++;        
+        }
+    }
+
+    md5_init(&ctx);
+    md5_update(&ctx, data, strlen(data));
+    md5_final(&ctx, hash);
+    int i;
+    for (i = 0; i < MD5_BLOCK_SIZE; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
+    fclose(file);
+    free(data);
+}
+
 int main()
 {
-    printf("MD5 tests: %s\n", md5_test() ? "SUCCEEDED" : "FAILED");
+    //printf("MD5 tests: %s\n", md5_test() ? "SUCCEEDED" : "FAILED");
+    if (argc != 2) {
+        printf("uso: ./md5 nome-arquivo\n");
+        exit(EXIT_FAILURE);
+    }
+    sha1_file(argv[1]);
 
     return(0);
 }
