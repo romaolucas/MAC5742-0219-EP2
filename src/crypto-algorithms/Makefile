@@ -1,4 +1,4 @@
-OUTPUT=rot-13
+OUTPUT=sha1
 
 CC=gcc
 CC_OPT=-g

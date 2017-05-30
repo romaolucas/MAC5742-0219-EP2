@@ -13,7 +13,9 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
+#include <sys/stat.h>
 #include <string.h>
 #include "sha1.h"
 
@@ -50,9 +52,43 @@ int sha1_test()
     return(pass);
 }
 
+
+void sha1_file() {
+    char *filename = "sample_files/moby_dick.txt";
+    BYTE *data;
+    BYTE hash[SHA1_BLOCK_SIZE];
+    SHA1_CTX ctx;
+
+    struct stat st;
+
+    if (stat(filename, &st) == 0) {
+        data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    }
+
+    FILE *file = fopen(filename, "rb");
+
+    if (data != NULL && file) {
+        int current_byte = 0;
+        while (fread(&data[current_byte], sizeof(BYTE), 1, file) == 1) {
+            current_byte++;        
+        }
+    }
+
+    sha1_init(&ctx);
+    sha1_update(&ctx, data, strlen(data));
+    sha1_final(&ctx, hash);
+    int i;
+    for (i = 0; i < SHA1_BLOCK_SIZE; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
+    fclose(file);
+    free(data);
+}
+
 int main()
 {
     printf("SHA1 tests: %s\n", sha1_test() ? "SUCCEEDED" : "FAILED");
-
+    sha1_file();
     return(0);
 }
