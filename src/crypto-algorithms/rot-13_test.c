@@ -58,6 +58,7 @@ void enc_dec_file(char *filename) {
         }
     }
     enc_data = (char *) malloc(sizeof(char) * st.st_size);
+    strcpy(enc_data, data);
     rot13(enc_data);
     FILE *enc_file = fopen("moby_dick_enc.txt", "wb+");
     fwrite(enc_data, sizeof(char) * st.st_size, 1, enc_file);
