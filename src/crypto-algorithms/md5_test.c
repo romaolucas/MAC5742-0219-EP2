@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     read_file(argv[1], data);
+    printf("oi\n");
 
     md5_init(&ctx);
     md5_update(&ctx, data, strlen(data));

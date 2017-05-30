@@ -12,7 +12,6 @@ void read_file(char *filename, BYTE *data) {
     }
 
     FILE *file = fopen(filename, "rb");
-    printf("oi\n");
 
     if (data != NULL && file) {
         int current_byte = 0;
