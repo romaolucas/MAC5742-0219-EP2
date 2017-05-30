@@ -39,7 +39,7 @@ int rot13_test()
     return(pass);
 }
 
-void enc_dec_file(char *filename) {
+void enc_dec_file(char *filename, char *enc_filename) {
     char *data;
     char *enc_data;
 
@@ -60,7 +60,7 @@ void enc_dec_file(char *filename) {
     enc_data = (char *) malloc(sizeof(char) * st.st_size);
     strcpy(enc_data, data);
     rot13(enc_data);
-    FILE *enc_file = fopen("moby_dick_enc.txt", "wb+");
+    FILE *enc_file = fopen(enc_filename, "wb+");
     fwrite(enc_data, sizeof(char) * st.st_size, 1, enc_file);
     free(data);
     free(enc_data);
@@ -68,9 +68,14 @@ void enc_dec_file(char *filename) {
     fclose(enc_file);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
-    enc_dec_file("sample_files/moby_dick.txt");
+    if (argc == 3) {
+        enc_dec_file(argv[1], argv[2]);
+    } else {
+        printf("uso: \n");
+        printf("./rot-13 nome_arquivo nome_arquivo_criptografado\n");
+    }
     return(0);
 }
