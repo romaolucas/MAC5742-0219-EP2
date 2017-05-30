@@ -13,7 +13,9 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
+#include <sys/stat.h>
 #include <string.h>
 #include "md5.h"
 
@@ -84,7 +86,7 @@ void md5_file(char *filename) {
     free(data);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     //printf("MD5 tests: %s\n", md5_test() ? "SUCCEEDED" : "FAILED");
     if (argc != 2) {
