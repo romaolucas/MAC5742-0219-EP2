@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         printf("uso: ./md5 nome-arquivo\n");
         exit(EXIT_FAILURE);
     }
-    read_file(argv[1], data);
+    read_file(argv[1], &data);
 
     md5_init(&ctx);
     md5_update(&ctx, data, strlen(data));
