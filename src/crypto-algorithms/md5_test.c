@@ -54,7 +54,7 @@ int md5_test()
 
 void md5_file(char *filename) {
     BYTE *data;
-    BYTE hash[SHA1_BLOCK_SIZE];
+    BYTE hash[MD5_BLOCK_SIZE];
     MD5_CTX ctx;
 
     struct stat st;
@@ -91,7 +91,7 @@ int main()
         printf("uso: ./md5 nome-arquivo\n");
         exit(EXIT_FAILURE);
     }
-    sha1_file(argv[1]);
+    md5_file(argv[1]);
 
     return(0);
 }
