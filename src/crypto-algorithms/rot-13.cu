@@ -2,7 +2,7 @@
 #include <string>
 #include "util.c"
 
-__global__ void rot13(char* str, int len)
+__global__ void rot13(BYTE* str, int len)
 {
    int case_type, idx;
    for (idx = 0; idx < len; idx++) {
