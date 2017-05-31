@@ -3,8 +3,7 @@
 #include <memory.h>
 #include <sys/stat.h>
 #include <string.h>
-#define BYTE unsigned char
-
+#include "util.h"
 
 BYTE * read_file(char *filename) {
 	BYTE *data;
@@ -25,4 +24,12 @@ BYTE * read_file(char *filename) {
 
     fclose(file);
     return data;
+}
+
+void print_hex(BYTE *vec, int vec_len) {
+    int i;
+    for (i = 0; i < vec_len; i++) {
+        printf("%02x", vec[i]);
+    }
+    printf("\n");
 }
