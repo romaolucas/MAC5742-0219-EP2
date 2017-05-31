@@ -3,6 +3,8 @@
 #include <memory.h>
 #include <sys/stat.h>
 #include <string.h>
+#define BYTE unsigned char
+
 
 BYTE * read_file(char *filename) {
 	BYTE *data;
