@@ -1,8 +1,6 @@
 #include <iostream>
 #include <string>
-#define CIPHER_NUMBER 13
-
-using namespace std;
+#include "util.c"
 
 __global__ void rot13(char* str, int len)
 {
@@ -23,15 +21,31 @@ __global__ void rot13(char* str, int len)
    }
 }
 
-int main()
+void dec_file(char *enc_filename, BYTE *data) {
+    BYTE *enc_data;
+    struct stat st;
+    enc_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    strcpy(enc_data, data);
+    rot13(enc_data);
+    FILE *enc_file = fopen(enc_filename, "wb+");
+    fwrite(enc_data, sizeof(BYTE) * st.st_size, 1, enc_file);
+    free(enc_data);
+    fclose(enc_file);
+}
+
+int main(int argc, char *argv[])
 {
-    char text[] = "Hello world!";
-    char* d_text;
-    cudaMalloc(&d_text, 12*sizeof(char));
-    cudaMemcpy(d_text, text, 12*sizeof(char), cudaMemcpyHostToDevice);
-    rot13 <<<1, 1>>>(d_text, 12);
-    cudaMemcpy(text, d_text, 12*sizeof(char), cudaMemcpyDeviceToHost);
-    cout << "The answer is: " << text << endl;
-    cudaFree(d_text);
-    return 0;
+    //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
+    BYTE *data;
+
+    struct stat st;
+    if (argc != 3) {
+        printf("Uso: ./rot-13 nome_arquivo nome_arquivo_criptografado\n");
+        exit(EXIT_FAILURE);
+    }
+
+    data = read_file(argv[1]);
+    rot13 <<<1, 1>>>(data, 12);
+    free(data);
+    return(0);
 }
