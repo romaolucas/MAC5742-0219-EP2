@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 {
     //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data;
+    struct stat st;
 
     if (argc != 3) {
         printf("Uso: ./rot-13 nome_arquivo nome_arquivo_criptografado\n");
@@ -32,7 +33,7 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    rot13 <<<1, 1>>>(data, 12);
+    rot13 <<<1, 1>>>(data, sizeof(BYTE) * st.st_size);
     free(data);
     return(0);
 }
