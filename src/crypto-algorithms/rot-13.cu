@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
     //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data;
 
-    struct stat st;
     if (argc != 3) {
         printf("Uso: ./rot-13 nome_arquivo nome_arquivo_criptografado\n");
         exit(EXIT_FAILURE);
