@@ -176,7 +176,7 @@ int main() {
 
     cudaError_t err = cudaSuccess;
     BYTE *data;
-    data = read_file("sample_files/moby_dick.txt");
+    data = read_file("moby_dick.txt");
     size_t string_len = strlen((const char *) data);
     size_t *d_string_len;
     size_t size = strlen((const char *) data) * sizeof(BYTE);
@@ -214,7 +214,10 @@ int main() {
     }
 
     err = cudaMalloc(&d_string_len, sizeof(size_t));
-    //TODO: if for error
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Problemas para alocar a memora para o d_string_len\n");
+        exit(EXIT_FAILURE);
+    }
 
     //TODO: another debug printf
     printf("Começando a gerar o hash:\n");
@@ -241,10 +244,12 @@ int main() {
     }
 
     print_hex(hash, MD5_BLOCK_SIZE);
+    
     free(data);
     cudaFree(d_data);
     cudaFree(d_ctx);
     cudaFree(d_hash);
+    cudaFree(d_string_len);
 
     return 0;
 }
