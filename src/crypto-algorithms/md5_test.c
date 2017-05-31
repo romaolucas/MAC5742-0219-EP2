@@ -13,9 +13,12 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
+#include <sys/stat.h>
 #include <string.h>
 #include "md5.h"
+#include "util.c"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int md5_test()
@@ -52,9 +55,28 @@ int md5_test()
     return(pass);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    printf("MD5 tests: %s\n", md5_test() ? "SUCCEEDED" : "FAILED");
+    //printf("MD5 tests: %s\n", md5_test() ? "SUCCEEDED" : "FAILED");
+    BYTE *data;
+    BYTE hash[MD5_BLOCK_SIZE];
+    MD5_CTX ctx;
+    
+    if (argc != 2) {
+        printf("uso: ./md5 nome-arquivo\n");
+        exit(EXIT_FAILURE);
+    }
+    data = read_file(argv[1]);
 
+    md5_init(&ctx);
+    md5_update(&ctx, data, strlen(data));
+    md5_final(&ctx, hash);
+    int i;
+    for (i = 0; i < MD5_BLOCK_SIZE; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
+
+    free(data);
     return(0);
 }

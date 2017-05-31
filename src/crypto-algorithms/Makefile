@@ -1,4 +1,3 @@
-
 CC=gcc
 CC_OPT=-g
 
@@ -16,4 +15,4 @@ sha1: sha1_test.c sha1.c sha1.h
 
 .PHONY: clean
 clean:
-	rm $(OUTPUT)
+	rm arcfour rot-13 sha1
