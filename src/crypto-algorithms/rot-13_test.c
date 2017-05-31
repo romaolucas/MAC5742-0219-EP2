@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "rot-13.h"
-#include "util.c"
+#include "util.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int rot13_test()

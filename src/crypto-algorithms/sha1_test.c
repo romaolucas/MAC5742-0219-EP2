@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include "sha1.h"
-#include "util.c"
+#include "util.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int sha1_test()
@@ -69,12 +69,7 @@ int main(int argc, char *argv[])
     sha1_init(&ctx);
     sha1_update(&ctx, data, strlen(data));
     sha1_final(&ctx, hash);
-    int i;
-    for (i = 0; i < SHA1_BLOCK_SIZE; i++) {
-        printf("%02x", hash[i]);
-    }
-    printf("\n");
-
+    print_hex(hash, SHA1_BLOCK_SIZE); 
     free(data);
     return(0);
 }

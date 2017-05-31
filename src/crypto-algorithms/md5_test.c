@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include "md5.h"
-#include "util.c"
+#include "util.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int md5_test()
@@ -71,12 +71,7 @@ int main(int argc, char *argv[])
     md5_init(&ctx);
     md5_update(&ctx, data, strlen(data));
     md5_final(&ctx, hash);
-    int i;
-    for (i = 0; i < MD5_BLOCK_SIZE; i++) {
-        printf("%02x", hash[i]);
-    }
-    printf("\n");
-
+    print_hex(hash, MD5_BLOCK_SIZE); 
     free(data);
     return(0);
 }
