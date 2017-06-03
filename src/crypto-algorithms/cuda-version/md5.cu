@@ -123,15 +123,15 @@ __host__ __device__ void md5_transform(MD5_CTX *ctx, const BYTE data[]) {
 
 __global__ void md5_update(MD5_CTX *ctx, const BYTE data[], size_t *len) {
     
-    size_t index = threadIdx.x + blockIdx.x * blockDim.x;
+    int index = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (index < *len) {
         ctx->data[ctx->datalen] = data[index];
-        ctx->datalen++;
+        atomicAdd(&(ctx->datalen), 1);
         if (ctx->datalen == 64) {
             md5_transform(ctx, ctx->data);
-            ctx->bitlen += 512;
-            ctx->datalen = 0;
+            atomicAdd(&(ctx->bitlen),512);
+            atomicExch(&(ctx->datalen), 0);
         }
     }
     //TODO: remove for loop when using multiple threads
@@ -150,7 +150,7 @@ __global__ void md5_update(MD5_CTX *ctx, const BYTE data[], size_t *len) {
 
 }
 
-void md5_final(MD5_CTX *ctx, BYTE hash[]) {
+__global__ void md5_final(MD5_CTX *ctx, BYTE hash[]) {
     size_t i;
 
     i = ctx->datalen;
@@ -199,9 +199,9 @@ int main() {
     BYTE *d_data = NULL;
     BYTE hash[MD5_BLOCK_SIZE];
     BYTE *d_hash = NULL;
-    MD5_CTX ctx;
-    MD5_CTX *d_ctx;
-    
+    MD5_CTX *ctx;
+
+
     printf("tamanho: %zu\n", string_len);  
     err = cudaMalloc(&d_data, string_len  * sizeof(BYTE));
         if (err != cudaSuccess) {
@@ -223,27 +223,16 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    err = cudaMalloc(&d_ctx, sizeof(MD5_CTX));
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Problemas para alocar memoria para o d_ctx\n");
-        exit(EXIT_FAILURE);
-    }
-
     err = cudaMalloc(&d_string_len, sizeof(size_t));
     if (err != cudaSuccess) {
         fprintf(stderr, "Problemas para alocar a memora para o d_string_len\n");
         exit(EXIT_FAILURE);
     }
 
-    md5_init(&ctx);
+    err = cudaMallocManaged((void **)&ctx, sizeof(MD5_CTX));
     
-    err = cudaMemcpy(d_ctx, &ctx, sizeof(MD5_CTX), cudaMemcpyHostToDevice);
-
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Problemas na copia do ctx\n");
-        exit(EXIT_FAILURE);
-    }
-
+    md5_init(ctx);
+    
     err = cudaMemcpy(d_string_len, &string_len, sizeof(size_t), cudaMemcpyHostToDevice);
 
     if (err != cudaSuccess) {
@@ -251,30 +240,26 @@ int main() {
         exit(EXIT_FAILURE);
     }
     
-    md5_update<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_ctx, d_data, d_string_len);
+    md5_update<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(ctx, d_data, d_string_len);
     
-    err = cudaMemcpy(&ctx, d_ctx, sizeof(MD5_CTX), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        fprintf(stderr, "Problemas na hora de copiar o ctx de volta para o host %d\n", err);
-        exit(EXIT_FAILURE);
-    }
 
+    cudaDeviceSynchronize();
+    md5_final<<<1, 1>>>(ctx, hash);
+    cudaDeviceSynchronize();
 
-    md5_final(&ctx, hash);
-
-    /*printf("Copiando pro hash do host: \n");
+    printf("Copiando pro hash do host: \n");
     err = cudaMemcpy(hash, d_hash, MD5_BLOCK_SIZE * sizeof(BYTE), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
         fprintf(stderr, "Problemas na hora de copiar o hash para o host + %02x\n", err);
         exit(EXIT_FAILURE);
-    }*/
+    }
 
     print_hex(hash, MD5_BLOCK_SIZE);
     
     free(data);
     cudaFree(d_data);
-    cudaFree(d_ctx);
     cudaFree(d_hash);
     cudaFree(d_string_len);
+    cudaFree(ctx);
     return 0;
 }
