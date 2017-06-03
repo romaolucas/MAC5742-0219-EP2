@@ -14,7 +14,7 @@ BYTE * read_file(char *filename) {
     }
 
     FILE *file = fopen(filename, "rb");
-
+    file_size = st.st_size;
     if (data != NULL && file) {
         int current_byte = 0;
         while (fread(&data[current_byte], sizeof(BYTE), 1, file) == 1) {
@@ -32,4 +32,8 @@ void print_hex(BYTE *vec, int vec_len) {
         printf("%02x", vec[i]);
     }
     printf("\n");
+}
+
+size_t get_file_size() {
+    return file_size;
 }

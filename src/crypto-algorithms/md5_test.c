@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     data = read_file(argv[1]);
-
     md5_init(&ctx);
     md5_update(&ctx, data, strlen(data));
     md5_final(&ctx, hash);

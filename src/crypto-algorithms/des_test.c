@@ -104,7 +104,6 @@ void enc_dec_file()
             current_byte += 1;
         };
     };
-
     encrypted_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
     decrypted_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
 
