@@ -3,7 +3,9 @@
 #include <cuda_runtime.h>
 #include "md5.cuh"
 #include "util.c"
-#define NUM_THREADS 256
+
+#define N (2048 * 2048)
+#define THREADS_PER_BLOCK 512
 
 
 /****************************** MACROS ******************************/
@@ -32,7 +34,7 @@ void md5_init(MD5_CTX *ctx) {
     ctx->state[3] = 0x10325476;
 }
 
-__device__ void md5_transform(MD5_CTX *ctx, const BYTE data[]) { 
+__host__ __device__ void md5_transform(MD5_CTX *ctx, const BYTE data[]) { 
     WORD a, b, c, d, m[16], i, j;
 
     for (i = 0, j = 0; i < 16; ++i, j += 4)
@@ -120,8 +122,20 @@ __device__ void md5_transform(MD5_CTX *ctx, const BYTE data[]) {
 
 
 __global__ void md5_update(MD5_CTX *ctx, const BYTE data[], size_t *len) {
-    size_t i;
+    
+    size_t index = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (index < *len) {
+        ctx->data[ctx->datalen] = data[index];
+        ctx->datalen++;
+        if (ctx->datalen == 64) {
+            md5_transform(ctx, ctx->data);
+            ctx->bitlen += 512;
+            ctx->datalen = 0;
+        }
+    }
     //TODO: remove for loop when using multiple threads
+    /*
     for (i = 0; i < *len; ++i) {
         ctx->data[ctx->datalen] = data[i];
         //TODO: make change to atomicAdd
@@ -132,12 +146,12 @@ __global__ void md5_update(MD5_CTX *ctx, const BYTE data[], size_t *len) {
             ctx->bitlen += 512;
             ctx->datalen = 0;
         }
-    }
+    }*/
 
 }
 
-__global__ void md5_final(MD5_CTX *ctx, BYTE hash[]) {
-     size_t i;
+void md5_final(MD5_CTX *ctx, BYTE hash[]) {
+    size_t i;
 
     i = ctx->datalen;
 
@@ -237,15 +251,23 @@ int main() {
         exit(EXIT_FAILURE);
     }
     
-    md5_update<<<1,1>>>(d_ctx, d_data, d_string_len);
-    md5_final<<<1, 1>>>(d_ctx, d_hash);
-
-    printf("Copiando pro hash do host: \n");
-    err = cudaMemcpy(hash, d_hash, MD5_BLOCK_SIZE * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    md5_update<<<N/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(d_ctx, d_data, d_string_len);
+    
+    err = cudaMemcpy(&ctx, d_ctx, sizeof(MD5_CTX), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) {
-        fprintf(stderr, "Problemas na hora de copiar o hash para o host\n");
+        fprintf(stderr, "Problemas na hora de copiar o ctx de volta para o host %d\n", err);
         exit(EXIT_FAILURE);
     }
+
+
+    md5_final(&ctx, hash);
+
+    /*printf("Copiando pro hash do host: \n");
+    err = cudaMemcpy(hash, d_hash, MD5_BLOCK_SIZE * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Problemas na hora de copiar o hash para o host + %02x\n", err);
+        exit(EXIT_FAILURE);
+    }*/
 
     print_hex(hash, MD5_BLOCK_SIZE);
     

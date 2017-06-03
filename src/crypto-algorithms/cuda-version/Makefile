@@ -1,12 +1,12 @@
 OBJECTS= md5.o util.o
 OUTPUT=md5
 NVCC=nvcc
-LINK_FLAGS=--device-c
+LINK_FLAGS=--device-c -G -g
 
 all: build
 
 build: $(OBJECTS)
-	$(NVCC) -o $(OUTPUT) $^
+	$(NVCC) -g -G -o $(OUTPUT) $^
 
 md5.o: md5.cu
 	$(NVCC) $(LINK_FLAGS) $^
