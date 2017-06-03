@@ -3,6 +3,8 @@
 #include <cuda_runtime.h>
 #include "md5.cuh"
 #include "util.c"
+#define NUM_THREADS 256
+
 
 /****************************** MACROS ******************************/
 #define ROTLEFT(a,b) ((a << b) | (a >> (32-b)))
@@ -177,22 +179,22 @@ int main() {
     cudaError_t err = cudaSuccess;
     BYTE *data;
     data = read_file("moby_dick.txt");
-    size_t string_len = strlen((const char *) data);
+    size_t string_len = get_file_size();
     size_t *d_string_len;
-    size_t size = strlen((const char *) data) * sizeof(BYTE);
+    size_t size = string_len * sizeof(BYTE);
     BYTE *d_data = NULL;
     BYTE hash[MD5_BLOCK_SIZE];
     BYTE *d_hash = NULL;
     MD5_CTX ctx;
     MD5_CTX *d_ctx;
     
+    printf("tamanho: %zu\n", string_len);  
     err = cudaMalloc(&d_data, string_len  * sizeof(BYTE));
         if (err != cudaSuccess) {
         fprintf(stderr, "Problemas na hora de alocar o d_data\n");
         exit(EXIT_FAILURE);
     }
 
-    //TODO: remove debug printf
     printf("Copiando valores pro vetor novo\n");
     err = cudaMemcpy(d_data, data, size, cudaMemcpyHostToDevice);
    
@@ -219,11 +221,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    //TODO: another debug printf
-    printf("Começando a gerar o hash:\n");
     md5_init(&ctx);
     
-    printf("Copiando o ctx: \n");
     err = cudaMemcpy(d_ctx, &ctx, sizeof(MD5_CTX), cudaMemcpyHostToDevice);
 
     if (err != cudaSuccess) {
@@ -231,8 +230,13 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    cudaMemcpy(d_string_len, &string_len, sizeof(size_t), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_string_len, &string_len, sizeof(size_t), cudaMemcpyHostToDevice);
 
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Problemas na copia do string_len\n");
+        exit(EXIT_FAILURE);
+    }
+    
     md5_update<<<1,1>>>(d_ctx, d_data, d_string_len);
     md5_final<<<1, 1>>>(d_ctx, d_hash);
 
@@ -250,6 +254,5 @@ int main() {
     cudaFree(d_ctx);
     cudaFree(d_hash);
     cudaFree(d_string_len);
-
     return 0;
 }

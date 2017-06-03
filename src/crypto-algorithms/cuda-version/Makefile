@@ -8,11 +8,11 @@ all: build
 build: $(OBJECTS)
 	$(NVCC) -o $(OUTPUT) $^
 
-md5.o: md5.cu md5.cuh
+md5.o: md5.cu
 	$(NVCC) $(LINK_FLAGS) $^
 
-util.o: util.c util.h
-	$(NVV) $(LINK_FLAGS) $^
+util.o: util.c
+	$(NVCC) $(LINK_FLAGS) $^
 
 
 clean:
