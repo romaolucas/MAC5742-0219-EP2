@@ -20,8 +20,7 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    caesar(13, data);
-    printf("%s",data);
+    caesar(20, data);
     free(data);
     return(0);
 }
