@@ -26,6 +26,13 @@ BYTE * read_file(char *filename) {
     return data;
 }
 
+void write_file(char* filename, BYTE* data) {
+    struct stat st;
+    FILE *file = fopen(filename, "wb+");
+    fwrite(data, sizeof(BYTE) * st.st_size, 1, file);
+    fclose(file);
+}
+
 void print_hex(BYTE *vec, int vec_len) {
     int i;
     for (i = 0; i < vec_len; i++) {

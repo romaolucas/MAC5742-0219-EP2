@@ -14,7 +14,6 @@
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
@@ -47,10 +46,8 @@ void dec_file(char *enc_filename, BYTE *data) {
     enc_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
     strcpy(enc_data, data);
     rot13(enc_data);
-    FILE *enc_file = fopen(enc_filename, "wb+");
-    fwrite(enc_data, sizeof(BYTE) * st.st_size, 1, enc_file);
+    write_file(enc_filename, enc_data);
     free(enc_data);
-    fclose(enc_file);
 }
 
 int main(int argc, char *argv[])
