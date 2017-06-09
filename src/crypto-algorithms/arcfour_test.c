@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     //arcfour_generate_stream(state, out, 1);
     printf("%s\n", data);
     free(data);
-    free(out);
+    //free(out);
 
     return(0);
 }
