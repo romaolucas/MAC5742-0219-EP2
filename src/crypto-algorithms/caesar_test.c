@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    caesar(13, data);
+    print("%s", data);
+    //caesar(13, data);
     free(data);
     return(0);
 }
