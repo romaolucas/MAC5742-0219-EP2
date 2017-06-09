@@ -45,12 +45,28 @@ int rc4_test()
     return(pass);
 }
 
+BYTE *xor_encrypt(BYTE* input, BYTE* key) 
+{
+    BYTE* output = (BYTE *) malloc(sizeof(BYTE) * strlen(input));;
+    int i;
+
+    for(i = 0; i < strlen(input); i++) {
+      output[i] = input[i] ^ key[i % (sizeof(key)/sizeof(char))];
+    }
+
+    return output;
+}
+
+
 int main(int argc, char *argv[])
 {
     //printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
-    BYTE *data;
+    BYTE *data, *output;
+    BYTE generated_key[1024];
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    int stream_len[3] = {10,6,8};
+    int idx;
 
     struct stat st;
     if (argc != 2) {
@@ -59,11 +75,16 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    arcfour_key_setup(state, key, strlen(data));
-    arcfour_generate_stream(state, data, 1);
-    printf("%s\n", data);
-    free(data);
-    //free(out);
 
+    for (idx = 0; idx < 3; idx++) {
+        arcfour_key_setup(state, key[idx], strlen(key[idx]));
+        arcfour_generate_stream(state, generated_key, stream_len[idx]);
+    }
+    output = xor_encrypt(data, generated_key);
+    output = xor_encrypt(output, generated_key);
+    printf("%s\n", output);
+    free(data);
+    free(output);
+    
     return(0);
 }
