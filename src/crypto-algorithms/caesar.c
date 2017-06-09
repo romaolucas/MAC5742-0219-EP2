@@ -2,13 +2,13 @@
 
 void caesar(int c, char str[])
 {
+	int i;
 	int l = strlen(str);
 	const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-	printf("%i", l);
  
-	int i;
 	for (i = 0; i < l; i++)
 	{
+		printf("oi\n");
 		if (!isalpha(str[i]))
 			continue;
  
