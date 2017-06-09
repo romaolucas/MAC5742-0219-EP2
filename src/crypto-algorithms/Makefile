@@ -2,10 +2,13 @@ CC=gcc
 CC_OPT=-g
 
 .PHONY: all
-all: md5 rot-13 sha1
+all: caesar md5 rot-13 sha1
 
 util.o: util.c util.h
 	$(CC) -c $(CC_OPT) $^
+
+caesar: caesar.c caesar.c caesar.h util.o
+	$(CC) -o $@ $(CC_OPT) $^
 
 md5: md5_test.c md5.c md5.h util.o
 	$(CC) -o $@ $(CC_OPT) $^
