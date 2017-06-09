@@ -65,6 +65,7 @@ int test_rot_13() {
     int passed = TRUE;
     int i;
     for (i = 0; i < 3; i++) {
+        printf("Testando arquivo %s\n", samples[i]);
         data = read_file((char *) samples[i]);
         len = get_file_size();
         dec_data = (BYTE *) malloc(len * sizeof(BYTE));
@@ -147,7 +148,10 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "-e") == 0) {
         enc_file(argv[2], argv[3]);
     } else {
-        test_rot_13();
+        int passed = test_rot_13();
+        if (passed == TRUE) {
+            printf("Todos os testes passaram!\n");
+        }
     }
 
     return(0);
