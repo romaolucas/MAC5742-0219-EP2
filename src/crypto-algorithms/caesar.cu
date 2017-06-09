@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string>
+#include <string.h>
 #include "util.c"
 
 __global__ void caesar(int c, BYTE* str, int l)
