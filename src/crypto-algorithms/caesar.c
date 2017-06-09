@@ -8,7 +8,7 @@ void caesar(int c, char str[])
  
 	for (i = 0; i < l; i++)
 	{
-		printf("%i\n", l);
+		printf("oi %i\n", l);
 		if (!isalpha(str[i]))
 			continue;
  
