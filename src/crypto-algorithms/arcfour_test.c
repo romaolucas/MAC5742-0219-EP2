@@ -59,9 +59,8 @@ int main(int argc, char *argv[])
 
     data = read_file(argv[1]);
     arcfour_key_setup(state, data, strlen(data));
-    arcfour_generate_stream(state, out, 1);
-    printf("%s\n", out);
-    //dec_file(data);
+    //arcfour_generate_stream(state, out, 1);
+    printf("%s\n", data);
     free(data);
     free(out);
 
