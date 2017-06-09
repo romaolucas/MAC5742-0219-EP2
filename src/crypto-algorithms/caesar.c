@@ -4,7 +4,7 @@ void caesar(int c, char str[])
 {
 	int l = strlen(str);
 	const char *alpha[2] = { "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"};
-	printf("%s", str);
+	printf("%i", l);
  
 	int i;
 	for (i = 0; i < l; i++)
