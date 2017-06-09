@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
     int idx;
 
     struct stat st;
-    if (argc != 2) {
-        printf("Uso: ./arcfour nome_arquivo\n");
+    if (argc != 3) {
+        printf("Uso: ./arcfour nome_arquivo nome_arquivo_criptografado\n");
         exit(EXIT_FAILURE);
     }
 
@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
         arcfour_key_setup(state, key[idx], strlen(key[idx]));
         arcfour_generate_stream(state, generated_key, stream_len[idx]);
     }
+
     output = xor_encrypt(data, generated_key);
-    output = xor_encrypt(output, generated_key);
-    printf("%s\n", output);
+    write_file(argv[2], output);
     free(data);
     free(output);
     
