@@ -48,8 +48,9 @@ int rc4_test()
 int main(int argc, char *argv[])
 {
     //printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
-    BYTE *data, *out;
+    BYTE *data;
     BYTE state[256];
+    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
 
     struct stat st;
     if (argc != 2) {
@@ -58,8 +59,8 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    arcfour_key_setup(state, data, strlen(data));
-    arcfour_generate_stream(state, out, 1);
+    arcfour_key_setup(state, key, strlen(data));
+    arcfour_generate_stream(state, data, 1);
     printf("%s\n", data);
     free(data);
     //free(out);
