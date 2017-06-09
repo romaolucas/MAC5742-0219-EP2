@@ -45,7 +45,7 @@ int rc4_test()
     return(pass);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     //printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data, *out;
