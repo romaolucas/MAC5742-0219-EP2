@@ -2,12 +2,12 @@ CC=gcc
 CC_OPT=-g
 
 .PHONY: all
-all: caesar md5 rot-13 sha1
+all: arcfour md5 rot-13 sha1
 
 util.o: util.c util.h
 	$(CC) -c $(CC_OPT) $^
 
-caesar: caesar_test.c caesar.c caesar.h util.o
+arcfour: arcfour_test.c arcfour.c arcfour.h util.o
 	$(CC) -o $@ $(CC_OPT) $^
 
 md5: md5_test.c md5.c md5.h util.o
@@ -21,4 +21,4 @@ sha1: sha1_test.c sha1.c sha1.h util.o
 
 .PHONY: clean
 clean:
-	rm caesar md5 rot-13 sha1
+	rm arcfour md5 rot-13 sha1
