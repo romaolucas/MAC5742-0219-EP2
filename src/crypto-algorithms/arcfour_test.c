@@ -76,11 +76,10 @@ int main(int argc, char *argv[])
 
     data = read_file(argv[1]);
 
-    for (idx = 0; idx < 3; idx++) {
+    for (idx = 0; idx < 3; idx++)
         arcfour_key_setup(state, key[idx], strlen(key[idx]));
-        arcfour_generate_stream(state, generated_key, stream_len[idx]);
-    }
-
+    
+    arcfour_generate_stream(state, generated_key, strlen(state));
     output = xor_encrypt(data, generated_key);
     write_file(argv[2], output);
     free(data);
