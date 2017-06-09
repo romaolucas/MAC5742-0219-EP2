@@ -12,7 +12,6 @@ BYTE * read_file(char *filename) {
     if (stat(filename, &st) == 0) {
         data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
     }
-
     FILE *file = fopen(filename, "rb");
     file_size = st.st_size;
     if (data != NULL && file) {
@@ -21,7 +20,6 @@ BYTE * read_file(char *filename) {
             current_byte++;        
         }
     }
-
     fclose(file);
     return data;
 }
