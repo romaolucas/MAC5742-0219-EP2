@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 
     data = read_file(argv[1]);
     caesar(13, data);
+    printf("%s",data);
     free(data);
     return(0);
 }
