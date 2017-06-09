@@ -7,6 +7,8 @@ int main(int argc, char *argv[])
 {
     //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data;
+    BYTE *enc_data;
+    struct stat st;
 
     if (argc != 3) {
         printf("Uso: ./caesar nome_arquivo nome_arquivo_criptografado\n");
@@ -14,8 +16,10 @@ int main(int argc, char *argv[])
     }
 
     data = read_file(argv[1]);
-    printf("%s", data);
-    //caesar(13, data);
+
+    enc_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    strcpy(enc_data, data);
+    caesar(13, enc_data);
     free(data);
     return(0);
 }
