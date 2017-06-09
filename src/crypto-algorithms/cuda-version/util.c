@@ -20,7 +20,6 @@ BYTE * read_file(char *filename) {
             current_byte++;        
         }
     }
-    printf("data[10]: %c\n", data[10]);
     fclose(file);
     return data;
 }
