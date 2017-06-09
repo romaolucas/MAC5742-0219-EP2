@@ -14,6 +14,11 @@
 /*************************** HEADER FILES ***************************/
 #include <stdio.h>
 #include <memory.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
 #include "arcfour.h"
 #include "util.h"
 
