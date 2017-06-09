@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include "arcfour.h"
+#include "util.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int rc4_test()
@@ -41,7 +42,23 @@ int rc4_test()
 
 int main()
 {
-    printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
+    //printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
+    BYTE *data, *out;
+    BYTE state[256];
+
+    struct stat st;
+    if (argc != 2) {
+        printf("Uso: ./arcfour nome_arquivo\n");
+        exit(EXIT_FAILURE);
+    }
+
+    data = read_file(argv[1]);
+    arcfour_key_setup(state, data, strlen(data));
+    arcfour_generate_stream(state, out, 1);
+    printf("%s\n", out);
+    //dec_file(data);
+    free(data);
+    free(out);
 
     return(0);
 }

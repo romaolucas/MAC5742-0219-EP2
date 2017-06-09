@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string.h>
+#include <string>
 #include "util.c"
 
 __global__ void caesar(int c, BYTE* str, int l)
@@ -9,8 +9,8 @@ __global__ void caesar(int c, BYTE* str, int l)
  
   for (i = 0; i < l; i++)
   {
-    if (!isalpha(str[i]))
-      continue;
+    if (str[i] < 'A' || (str[idx] > 'Z' && str[idx] < 'a') || str[idx] > 'z')
+         continue;
 
     if (isupper(str[i]))
       aux = 1;
