@@ -101,7 +101,13 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMalloc(&key, 1024 * sizeof(BYTE));
     print_error_message(err, (const char *) "key", ALLOC); 
 
-    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
+    err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
+    print_error_message(err, (const char *) "d_key", ALLOC); 
+
+    err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char *) "d_key", COPY);
+
+    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(d_key);
     err = cudaMalloc(&enc_data, len * sizeof(BYTE));
     print_error_message(err, (const char *) "enc_data", ALLOC); 
 
@@ -111,9 +117,9 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMalloc(&d_len, sizeof(int));
     print_error_message(err, (const char *) "d_len", ALLOC);
 
-    err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
-    print_error_message(err, (const char *) "d_key", ALLOC); 
-
+    err = cudaMemcpy(key, d_key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char *) "key", COPY);
+    
     err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_data", COPY);
 
