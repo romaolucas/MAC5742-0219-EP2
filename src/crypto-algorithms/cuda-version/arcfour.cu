@@ -92,7 +92,7 @@ void enc_file(char *filename, char *enc_filename)
     size_t len;
     BYTE *d_data = NULL;
     BYTE *d_key = NULL;
-    int *d_len = NULL;
+    int d_len = NULL;
     cudaError_t err = cudaSuccess;
     
     data = read_file(filename);
@@ -115,7 +115,7 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, 1024, sizeof(size_t), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
  
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
@@ -138,8 +138,6 @@ int main(int argc, char *argv[])
         printf("Para rodar os testes: ./arcfour -t\n");
         exit(EXIT_FAILURE);
     }
-
-    generate_key();
 
     if (strcmp(argv[1], "-e") == 0) {
         enc_file(argv[2], argv[3]);
