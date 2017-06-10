@@ -52,14 +52,14 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__device__ void generate_key(BYTE generated_key) 
+__device__ void generate_key() 
 {
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
     int idx = 0; 
 
     //for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, (const char*) key[idx], strlen(key[idx]));
+        arcfour_key_setup(state, key[idx], 3);
     
     //arcfour_generate_stream(state, generated_key, strlen(state));
 }
