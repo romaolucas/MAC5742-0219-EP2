@@ -52,7 +52,7 @@ __global__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__device__ BYTE generate_key() 
+__device__ BYTE* generate_key() 
 {
     BYTE state[256];
     BYTE generated_key[1024];
@@ -62,7 +62,7 @@ __device__ BYTE generate_key()
     for (idx = 0; idx < 3; idx++)
         arcfour_key_setup(state, key[idx], strlen(key[idx]));
     
-    arcfour_generate_stream<<<1,1>>>(state, generated_key, strlen(state));
+    arcfour_generate_stream(state, generated_key, strlen(state));
 
     return generated_key;
 
@@ -147,12 +147,7 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "-e") == 0) {
         enc_file(argv[2], argv[3]);
-    } else {
-        int passed = test_rot_13();
-        if (passed == TRUE) {
-            printf("Todos os testes passaram!\n");
-        }
-    }
+    } 
 
     return(0);
 }
