@@ -18,11 +18,6 @@ extern "C" {
     #include "util.h"
 }
 
-__device__ BYTE generated_key[1024];
-__device__ BYTE state[256];
-__device__ BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-__device__ int stream_len[3] = {10,6,8};
-
 void arcfour_key_setup(BYTE state[], const BYTE key[], int len)
 {
     int i, j;
@@ -54,7 +49,24 @@ __global__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__global__ void xor_encrypt(BYTE* data, int len) 
+__device__ BYTE generate_key() 
+{
+    BYTE state[256];
+    BYTE generated_key[1024];
+    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    int stream_len[3] = {10,6,8};
+    int idx;
+
+    for (idx = 0; idx < 3; idx++)
+        arcfour_key_setup(state, key[idx], strlen(key[idx]));
+    
+    arcfour_generate_stream(state, generated_key, strlen(state));
+
+    return generated_key;
+
+}
+
+__global__ void xor_encrypt(BYTE* data, BYTE* key, int len) 
 {
     int i;
 
@@ -74,9 +86,11 @@ void print_error_message(cudaError_t err, const char *var, int type) {
     }
 }
 
-void enc_file(char *filename, char *enc_filename) {
+void enc_file(char *filename, char *enc_filename) 
+{
     BYTE *data;
     BYTE *enc_data;
+    BYTE *generated_key;
     size_t len;
     BYTE *d_data = NULL;
     size_t *d_len = NULL;
@@ -84,6 +98,7 @@ void enc_file(char *filename, char *enc_filename) {
     
     data = read_file(filename);
     len = get_file_size();
+    generated_key = generate_key();
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
@@ -92,13 +107,19 @@ void enc_file(char *filename, char *enc_filename) {
     err = cudaMalloc(&d_len, sizeof(size_t));
     print_error_message(err, (const char *) "d_len", ALLOC);
 
+    err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
+    print_error_message(err, (const char *) "d_key", ALLOC); 
+
     err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_data", COPY);
 
     err = cudaMemcpy(d_len, &len, sizeof(size_t), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
+
+    err = cudaMemcpy(d_key, 1024, sizeof(size_t), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char *) "d_key", COPY);
  
-    rot13 <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_len);
+    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
     
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
@@ -108,15 +129,6 @@ void enc_file(char *filename, char *enc_filename) {
     free(enc_data);
     cudaFree(d_data);
     cudaFree(d_len);
-}
-
-void generate_key() {
-    int idx;
-
-    for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, key[idx], strlen(key[idx]));
-    
-    arcfour_generate_stream(state, generated_key, strlen(state));
 }
 
 int main(int argc, char *argv[])
