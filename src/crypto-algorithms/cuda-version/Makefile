@@ -21,4 +21,4 @@ des.o: des.cu util.o
 	$(NVCC) $(LINK_FLAGS) $^
 
 clean:
-	rm $(OBJECTS) $(OUTPUT)
+	rm *.o rot-13 des
