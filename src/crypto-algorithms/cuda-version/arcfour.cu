@@ -92,7 +92,7 @@ void enc_file(char *filename, char *enc_filename)
 {
     BYTE *data;
     BYTE *enc_data;
-    BYTE *generated_key;
+    BYTE generated_key[1024];
     size_t len;
     BYTE *d_data = NULL;
     BYTE *d_key = NULL;
@@ -101,7 +101,7 @@ void enc_file(char *filename, char *enc_filename)
     
     data = read_file(filename);
     len = get_file_size();
-    generated_key = generate_key();
+    generate_key(generated_key);
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
