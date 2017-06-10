@@ -61,15 +61,15 @@ __global__ void generate_key(BYTE* generated_key)
     for (idx = 0; idx < 3; idx++)
       arcfour_key_setup(state, key[idx], 3);
   
-    arcfour_generate_stream(state, generated_key, 256);;
+    arcfour_generate_stream(state, generated_key, 256);
 }
 
-__global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
+__global__ void xor_encrypt(BYTE* data, BYTE* out,  BYTE* key, int* len) 
 {
     int i;
 
     for(i = 0; i < *len; i++) {
-      data[i] = data[i] ^ key[i % (sizeof(key)/sizeof(char))];
+      out[i] = data[i] ^ key[i % (sizeof(key)/sizeof(char))];
     }
 }
 
@@ -121,8 +121,9 @@ void enc_file(char *filename, char *enc_filename)
 
     err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
- 
-    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
+    
+    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, enc_data, d_key, d_len);
+    //xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(enc_data, d_data, d_key, d_len);
     
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
