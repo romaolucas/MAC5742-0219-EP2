@@ -102,7 +102,8 @@ void enc_file(char *filename, char *enc_filename)
     print_error_message(err, (const char *) "key", ALLOC); 
 
     generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
-    enc_data = (BYTE *) malloc(len * sizeof(BYTE));
+    err = cudaMalloc(&enc_data, len * sizeof(BYTE));
+    print_error_message(err, (const char *) "enc_data", ALLOC); 
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
     print_error_message(err, (const char *) "d_data", ALLOC); 
