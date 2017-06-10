@@ -21,7 +21,7 @@ extern "C" {
 #define N (2048 * 2048)
 #define NUM_THREADS 512
 
-void arcfour_key_setup(BYTE state[], const BYTE key[], int len)
+void arcfour_key_setup(BYTE state[], BYTE key[], int len)
 {
     int i, j;
     BYTE t;
@@ -59,7 +59,7 @@ __device__ void generate_key(BYTE *generated_key)
     int idx; 
 
     for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, (const char*) key[idx], strlen(key[idx]));
+        arcfour_key_setup(state, key[idx], strlen(key[idx]));
     
     arcfour_generate_stream(state, generated_key, strlen(state));
 }
