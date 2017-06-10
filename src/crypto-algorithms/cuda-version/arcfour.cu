@@ -86,8 +86,6 @@ void print_error_message(cudaError_t err, const char *var, int type) {
 
 void enc_file(char *filename, char *enc_filename) 
 {
-    cudaError_t err; 
-    printf("enc_file \n");
     BYTE *data;
     BYTE *enc_data;
     BYTE generated_key[1024];
@@ -100,13 +98,7 @@ void enc_file(char *filename, char *enc_filename)
     data = read_file(filename);
     len = get_file_size();
     generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(generated_key);
-    fprintf(stderr, "%s \n", generated_key);
-    err = cudaGetLastError();
-    if (err == cudaSuccess) {
-          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
-          exit(EXIT_FAILURE);
-    }
-
+    
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
