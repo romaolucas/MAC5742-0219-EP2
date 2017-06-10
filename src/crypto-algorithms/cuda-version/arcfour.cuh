@@ -11,8 +11,7 @@ typedef unsigned char BYTE;
 
 void arcfour_key_setup(BYTE state[], const BYTE key[], int len);
 
-__global__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len);
-
+__device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len);
 
 __device__ BYTE generate_key();
 
