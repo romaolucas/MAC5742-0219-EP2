@@ -1,5 +1,5 @@
-OBJECTS= rot-13.o util.o
-OUTPUT=rot-13
+OBJECTS= arcfour.o util.o
+OUTPUT=arcfour
 NVCC=nvcc
 LINK_FLAGS=--device-c -G -g -arch=sm_50
 
@@ -11,7 +11,7 @@ build: $(OBJECTS)
 util.o: util.c 
 	$(NVCC) $(LINK_FLAGS) $^
 
-rot-13.o: rot-13.cu util.o
+arcfour.o: arcfour.cu util.o
 	$(NVCC) $(LINK_FLAGS) $^
 
 clean:
