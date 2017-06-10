@@ -52,20 +52,17 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__global__ void generate_key() 
-{
-    # if __CUDA_ARCH__>=200	
-    printf("gene\n");
-    #endif
-    //BYTE state[256];
-    //BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-    //int idx = 0; 
+__global__ void generate_key(BYTE* generated_key) 
+{	
+    BYTE state[256];
+    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    int idx = 0; 
 
-    //for (idx = 0; idx < 3; idx++)
-      //  arcfour_key_setup(state, key[idx], 3);
-	//printf("state: %s", state); 
+    for (idx = 0; idx < 3; idx++)
+      arcfour_key_setup(state, key[idx], 3);
+	printf("state: %s", state); 
   
-    //arcfour_generate_stream(state, generated_key, strlen(state));
+    arcfour_generate_stream(state, generated_key, 256);
 }
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
@@ -94,7 +91,7 @@ void enc_file(char *filename, char *enc_filename)
     printf("enc_file \n");
     // BYTE *data;
     // BYTE *enc_data;
-    // BYTE generated_key[1024];
+    BYTE generated_key[1024];
     // size_t len;
     // BYTE *d_data = NULL;
     // BYTE *d_key = NULL;
@@ -103,9 +100,10 @@ void enc_file(char *filename, char *enc_filename)
     
     // data = read_file(filename);
     // len = get_file_size();
-    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>();
+    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(generated_key);
+    fprintf(stderr, "%s \n", generated_key);
     err = cudaGetLastError();
-    if (err != cudaSuccess) {
+    if (err == cudaSuccess) {
           fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
           exit(EXIT_FAILURE);
     }
