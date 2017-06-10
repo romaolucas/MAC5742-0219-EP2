@@ -19,7 +19,7 @@ extern "C" {
 }
 
 #define MAX_THREAD 8
-#define N (1024 * 1024)
+#define N 1024
 
 #define BITNUM(a,b,c) (((a[(b)/8] >> (7 - (b%8))) & 0x01) << (c))
 #define BITNUMINTR(a,b,c) ((((a) >> (31 - (b))) & 0x00000001) << (c))
@@ -257,15 +257,13 @@ __device__ void des_crypt(const BYTE in[], BYTE out[], const BYTE key[][6])
 __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
     __shared__ BYTE key1[DES_BLOCK_SIZE];
     __shared__ BYTE schedule[16][6];
-    __shared__ BYTE data_buf[MAX_THREAD][MAX_THREAD];
-    __shared__ BYTE data_enc_block[MAX_THREAD][MAX_THREAD];
-    __shared__ BYTE data_dec_block[MAX_THREAD][MAX_THREAD];
-    int row, col;
-    row = blockIdx.x * blockDim.x + threadIdx.x;
-    col = blockIdx.y * blockDim.y + threadIdx.y;
-    int idx = col + row * N;
+    __shared__ BYTE data_buf[MAX_THREAD];
+    __shared__ BYTE data_enc_block[MAX_THREAD];
+    __shared__ BYTE data_dec_block[MAX_THREAD];
+    int blockidx = blockIdx.x + blockIdx.y * gridDim.x;
+    int idx = blockidx * blockDim.x + threadIdx.x;
     
-    if (threadIdx.x == 0 && threadIdx.y == 0) {
+    if (threadIdx.x == 0) {
         key1[0] = 0x01;
         key1[1] = 0x23;
         key1[2] = 0x45;
@@ -275,21 +273,19 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
         key1[6] = 0xCD;
         key1[7] = 0xEF;
     }
-
     __syncthreads();
     if (idx < *len) {
-        data_buf[threadIdx.x][threadIdx.y] = data[idx];
+        data_buf[threadIdx.x] = data[idx];
         __syncthreads();
         if (threadIdx.x == 0) {
             des_key_setup(key1, schedule, DES_ENCRYPT);
-            des_crypt(data_buf[threadIdx.x], data_enc_block[threadIdx.x], schedule);
+            des_crypt(data_buf, data_enc_block, schedule);
 
             des_key_setup(key1, schedule, DES_DECRYPT);
-            des_crypt(data_enc_block[threadIdx.x], data_dec_block[threadIdx.x], schedule);
+            des_crypt(data_enc_block, data_dec_block, schedule);
         }
-        __syncthreads();
-        data_enc[idx] = data_enc_block[threadIdx.x][threadIdx.y];
-        data_dec[idx] = data_dec_block[threadIdx.x][threadIdx.y];
+        data_enc[idx] = data_enc_block[threadIdx.x];
+        data_dec[idx] = data_dec_block[threadIdx.x];
     }
 
 }
@@ -314,7 +310,6 @@ int main() {
     BYTE *d_data_dec = NULL;
     size_t len;
     size_t *d_len;
-    dim3 dimBlock(MAX_THREAD, MAX_THREAD);
     dim3 dimGrid(N, N);
     cudaError_t err = cudaSuccess;
     
@@ -339,10 +334,16 @@ int main() {
     err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char*) "d_data", COPY);
 
-     err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
     print_error_message(err, (const char*) "d_len", COPY);
-
-    des<<<dimGrid, dimBlock>>>(d_data, d_data_enc, d_data_dec, d_len); 
+    des<<<dimGrid, MAX_THREAD>>>(d_data, d_data_enc, d_data_dec, d_len); 
+    
+    cudaDeviceSynchronize();
+    
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess) {
+          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(error));
+    }
 
     err = cudaMemcpy(data_enc, d_data_enc, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char*) "data_enc", COPY);
