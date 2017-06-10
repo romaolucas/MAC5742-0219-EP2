@@ -21,7 +21,7 @@ extern "C" {
 #define N (2048 * 2048)
 #define NUM_THREADS 512
 
-void arcfour_key_setup(BYTE state[], BYTE key[], int len)
+__device__ void arcfour_key_setup(BYTE state[], BYTE key[], int len)
 {
     int i, j;
     BYTE t;
@@ -52,15 +52,19 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__device__ void generate_key() 
+__global__ void generate_key() 
 {
-    BYTE state[256];
-    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-    int idx = 0; 
+    # if __CUDA_ARCH__>=200	
+    printf("gene\n");
+    #endif
+    //BYTE state[256];
+    //BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    //int idx = 0; 
 
     //for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, key[idx], 3);
-    
+      //  arcfour_key_setup(state, key[idx], 3);
+	//printf("state: %s", state); 
+  
     //arcfour_generate_stream(state, generated_key, strlen(state));
 }
 
@@ -86,6 +90,8 @@ void print_error_message(cudaError_t err, const char *var, int type) {
 
 void enc_file(char *filename, char *enc_filename) 
 {
+    cudaError_t err; 
+    printf("enc_file \n");
     // BYTE *data;
     // BYTE *enc_data;
     // BYTE generated_key[1024];
@@ -97,7 +103,13 @@ void enc_file(char *filename, char *enc_filename)
     
     // data = read_file(filename);
     // len = get_file_size();
-    // //generate_key(generated_key);
+    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>();
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
+          exit(EXIT_FAILURE);
+    }
+
     // enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     // err = cudaMalloc(&d_data, len * sizeof(BYTE));
@@ -138,9 +150,9 @@ int main(int argc, char *argv[])
         printf("Para rodar os testes: ./arcfour -t\n");
         exit(EXIT_FAILURE);
     }
-
+	
     if (strcmp(argv[1], "-e") == 0) {
-        enc_file(argv[2], argv[3]);
+	enc_file(argv[2], argv[3]);
     } 
 
     return(0);
