@@ -68,7 +68,7 @@ __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len)
 {
     int i;
 
-    for(i = 0; i < len; i++) {
+    for(i = 0; i < *len; i++) {
       data[i] = data[i] ^ key[i % (sizeof(key)/sizeof(char))];
     }
 }
@@ -115,7 +115,7 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
  
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
