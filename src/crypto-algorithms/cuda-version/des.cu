@@ -257,13 +257,13 @@ __device__ void des_crypt(const BYTE in[], BYTE out[], const BYTE key[][6])
 __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
     __shared__ BYTE key1[DES_BLOCK_SIZE];
     __shared__ BYTE schedule[16][6];
-    __shared__ BYTE data_buf[MAX_THREAD];
-    __shared__ BYTE data_enc_block[MAX_THREAD];
-    __shared__ BYTE data_dec_block[MAX_THREAD];
+    __shared__ BYTE data_buf[MAX_THREAD][MAX_THREAD];
+    __shared__ BYTE data_enc_block[MAX_THREAD][MAX_THREAD];
+    __shared__ BYTE data_dec_block[MAX_THREAD][MAX_THREAD];
     int blockidx = blockIdx.x + blockIdx.y * gridDim.x;
-    int idx = blockidx * blockDim.x + threadIdx.x;
+    int idx = blockidx * (blockDim.x + blockDim.y) + threadIdx.y * blockDim.x + threadIdx.x;
     
-    if (threadIdx.x == 0) {
+    if (threadIdx.x == 0 && threadIdx.y == 0) {
         key1[0] = 0x01;
         key1[1] = 0x23;
         key1[2] = 0x45;
@@ -275,17 +275,17 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
     }
     __syncthreads();
     if (idx < *len) {
-        data_buf[threadIdx.x] = data[idx];
+        data_buf[threadIdx.x][threadIdx.y] = data[idx];
         __syncthreads();
-        if (threadIdx.x == 0) {
+        if (threadIdx.y == 0) {
             des_key_setup(key1, schedule, DES_ENCRYPT);
-            des_crypt(data_buf, data_enc_block, schedule);
+            des_crypt(data_buf[threadIdx.x], data_enc_block[threadIdx.x], schedule);
 
             des_key_setup(key1, schedule, DES_DECRYPT);
-            des_crypt(data_enc_block, data_dec_block, schedule);
+            des_crypt(data_enc_block[threadIdx.x], data_dec_block[threadIdx.x], schedule);
         }
-        data_enc[idx] = data_enc_block[threadIdx.x];
-        data_dec[idx] = data_dec_block[threadIdx.x];
+        data_enc[idx] = data_enc_block[threadIdx.x][threadIdx.y];
+        data_dec[idx] = data_dec_block[threadIdx.x][threadIdx.y];
     }
 
 }
@@ -297,6 +297,7 @@ void print_error_message(cudaError_t err, const char *var, int type) {
         } else {
             fprintf(stderr, "Problemas na copia de %s\n", var);
         }
+        fprintf(stderr, "Erro: %s", cudaGetErrorString(err));
         exit(EXIT_FAILURE);
     }
 }
@@ -311,6 +312,7 @@ int main() {
     size_t len;
     size_t *d_len;
     dim3 dimGrid(N, N);
+    dim3 dimBlock(MAX_THREAD, MAX_THREAD);
     cudaError_t err = cudaSuccess;
     
     data = read_file("../sample_files/moby_dick.txt");
@@ -336,13 +338,14 @@ int main() {
 
     err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
     print_error_message(err, (const char*) "d_len", COPY);
-    des<<<dimGrid, MAX_THREAD>>>(d_data, d_data_enc, d_data_dec, d_len); 
+    des<<<dimGrid, dimBlock>>>(d_data, d_data_enc, d_data_dec, d_len); 
     
     cudaDeviceSynchronize();
     
-    cudaError_t error = cudaGetLastError();
-    if (error != cudaSuccess) {
-          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(error));
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
+          exit(EXIT_FAILURE);
     }
 
     err = cudaMemcpy(data_enc, d_data_enc, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
