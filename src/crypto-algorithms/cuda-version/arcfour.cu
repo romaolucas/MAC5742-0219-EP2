@@ -96,7 +96,7 @@ void enc_file(char *filename, char *enc_filename)
     cudaError_t err = cudaSuccess;
     
     data = read_file(filename);
-    len = get_file_size();
+    len = get_file_size();;
     generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(generated_key);
     
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
