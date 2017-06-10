@@ -19,7 +19,7 @@ extern "C" {
 }
 
 #define MAX_THREAD 8
-#define N 1024
+#define N 2048
 
 #define BITNUM(a,b,c) (((a[(b)/8] >> (7 - (b%8))) & 0x01) << (c))
 #define BITNUMINTR(a,b,c) ((((a) >> (31 - (b))) & 0x00000001) << (c))
@@ -273,7 +273,6 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
         key1[6] = 0xCD;
         key1[7] = 0xEF;
     }
-    __syncthreads();
     if (idx < *len) {
         data_buf[threadIdx.x][threadIdx.y] = data[idx];
         __syncthreads();
@@ -389,7 +388,6 @@ void enc_dec_file(char *filename, char *enc_filename, char *dec_filename) {
     
     data = read_file(filename);
     len = get_file_size();
-    
     data_enc = (BYTE *) malloc(len * sizeof(BYTE));
     data_dec = (BYTE *) malloc(len * sizeof(BYTE));
 
@@ -426,8 +424,8 @@ void enc_dec_file(char *filename, char *enc_filename, char *dec_filename) {
     err = cudaMemcpy(data_dec, d_data_dec, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char*) "data_dec", COPY);
 
-    FILE *file_enc = fopen(enc_filename, "wb");
-    FILE *file_dec = fopen(dec_filename, "wb");
+    FILE *file_enc = fopen(enc_filename, "wb+");
+    FILE *file_dec = fopen(dec_filename, "wb+");
 
     fwrite(data_enc, len * sizeof(BYTE), 1, file_enc);
     fwrite(data_dec, len * sizeof(BYTE), 1, file_dec);
