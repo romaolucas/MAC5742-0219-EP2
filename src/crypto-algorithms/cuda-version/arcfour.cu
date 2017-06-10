@@ -54,17 +54,9 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
 
 __global__ void generate_key(BYTE* generated_key) 
 {	
-    BYTE *d_key;
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
     int idx = 0;
-    cudaError_t err = cudaSuccess;
-
-    err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
-    print_error_message(err, (const char *) "d_key", ALLOC);
-
-    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
-    print_error_message(err, (const char *) "d_key", COPY);
 
     for (idx = 0; idx < 3; idx++)
       arcfour_key_setup(state, key[idx], 3);
