@@ -18,6 +18,9 @@ extern "C" {
     #include "util.h"
 }
 
+#define N (2048 * 2048)
+#define NUM_THREADS 512
+
 void arcfour_key_setup(BYTE state[], const BYTE key[], int len)
 {
     int i, j;
@@ -54,13 +57,12 @@ __device__ BYTE generate_key()
     BYTE state[256];
     BYTE generated_key[1024];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-    int stream_len[3] = {10,6,8};
     int idx;
 
     for (idx = 0; idx < 3; idx++)
         arcfour_key_setup(state, key[idx], strlen(key[idx]));
     
-    arcfour_generate_stream(state, generated_key, strlen(state));
+    arcfour_generate_stream<<<1,1>>>(state, generated_key, strlen(state));
 
     return generated_key;
 
@@ -93,6 +95,7 @@ void enc_file(char *filename, char *enc_filename)
     BYTE *generated_key;
     size_t len;
     BYTE *d_data = NULL;
+    BYTE *d_key = NULL;
     size_t *d_len = NULL;
     cudaError_t err = cudaSuccess;
     
