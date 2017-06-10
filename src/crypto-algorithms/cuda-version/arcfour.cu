@@ -52,7 +52,7 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__device__ BYTE* generate_key(BYTE *generated_key) 
+__device__ void generate_key(BYTE *generated_key) 
 {
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
@@ -64,7 +64,7 @@ __device__ BYTE* generate_key(BYTE *generated_key)
     arcfour_generate_stream(state, generated_key, strlen(state));
 }
 
-__global__ void xor_encrypt(BYTE* data, BYTE* key, int len) 
+__global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
 {
     int i;
 
@@ -92,7 +92,7 @@ void enc_file(char *filename, char *enc_filename)
     size_t len;
     BYTE *d_data = NULL;
     BYTE *d_key = NULL;
-    int d_len = NULL;
+    int *d_len = NULL;
     cudaError_t err = cudaSuccess;
     
     data = read_file(filename);

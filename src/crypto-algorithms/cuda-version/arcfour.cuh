@@ -13,7 +13,7 @@ void arcfour_key_setup(BYTE state[], const BYTE key[], int len);
 
 __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len);
 
-__device__ BYTE* generate_key(BYTE *generated_key); 
+__device__ void generate_key(BYTE *generated_key); 
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int len);
 
