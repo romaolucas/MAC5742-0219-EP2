@@ -56,12 +56,12 @@ __global__ void generate_key(BYTE* generated_key)
 {	
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-    int idx = 0; 
+    int idx = 0;
 
     for (idx = 0; idx < 3; idx++)
       arcfour_key_setup(state, key[idx], 3);
   
-    arcfour_generate_stream(state, generated_key, 256);
+    arcfour_generate_stream(state, generated_key, 256);;
 }
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
@@ -88,7 +88,7 @@ void enc_file(char *filename, char *enc_filename)
 {
     BYTE *data;
     BYTE *enc_data;
-    BYTE generated_key[1024];
+    BYTE *key;
     size_t len;
     BYTE *d_data = NULL;
     BYTE *d_key = NULL;
@@ -97,8 +97,9 @@ void enc_file(char *filename, char *enc_filename)
     
     data = read_file(filename);
     len = get_file_size();;
-    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(generated_key);
     
+    key = (BYTE *) malloc(1024 * sizeof(BYTE));
+    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
