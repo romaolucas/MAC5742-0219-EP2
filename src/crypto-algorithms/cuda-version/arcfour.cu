@@ -59,9 +59,9 @@ __device__ void generate_key(BYTE *generated_key)
     int idx; 
 
     for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, (const char*) key[idx], strlen(key[idx]));
+        arcfour_key_setup((const char*) state, key[idx], strlen(key[idx]));
     
-    arcfour_generate_stream(state, (const char*) generated_key, strlen(state));
+    arcfour_generate_stream(state, generated_key, strlen(state));
 }
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
