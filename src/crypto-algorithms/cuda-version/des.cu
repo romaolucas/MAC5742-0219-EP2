@@ -18,6 +18,9 @@ extern "C" {
     #include "util.h"
 }
 
+#define MAX_THREAD 8
+#define N (1024 * 1024)
+
 #define BITNUM(a,b,c) (((a[(b)/8] >> (7 - (b%8))) & 0x01) << (c))
 #define BITNUMINTR(a,b,c) ((((a) >> (31 - (b))) & 0x00000001) << (c))
 #define BITNUMINTL(a,b,c) ((((a) << (b)) & 0x80000000) >> (c))
@@ -251,8 +254,8 @@ __device__ void des_crypt(const BYTE in[], BYTE out[], const BYTE key[][6])
     InvIP(state,out);
 }
 
-__global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len, int *N) {
-    __shared__ BYTE key1[DES_BLOCK_SIZE] = {0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF};
+__global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
+    __shared__ BYTE key1[DES_BLOCK_SIZE];
     __shared__ BYTE schedule[16][6];
     __shared__ BYTE data_buf[MAX_THREAD][MAX_THREAD];
     __shared__ BYTE data_enc_block[MAX_THREAD][MAX_THREAD];
@@ -260,19 +263,108 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len, int
     int row, col;
     row = blockIdx.x * blockDim.x + threadIdx.x;
     col = blockIdx.y * blockDim.y + threadIdx.y;
-    int idx = col + row * (*N);
-    if (idx < *len) {
-        data_buf[threadIdx.y][threadIdx.x] = data[idx];
-        _syncthreads();
-        if (threadIdx.x == 0) {
-            des_key_setup(key1, schedule, DES_ENCRYPT);
-            des_crypt(data_buf[threadIdx.y], data_enc_block[threadIdx.y], schedule);
-
-            des_key_setup(key1, schedule, DES_DECRYPT);
-            des_crypt(data_enc_block[threadIdx.y], data_dec_block[threadIdx.y], schedule);
-        }
-        data_enc[idx] = data_enc_block[threadIdx.y][threadIdx.x];
-        data_dec = data_dec_block[threadIdx.y][threadIdx.x];
+    int idx = col + row * N;
+    
+    if (threadIdx.x == 0 && threadIdx.y == 0) {
+        key1[0] = 0x01;
+        key1[1] = 0x23;
+        key1[2] = 0x45;
+        key1[3] = 0x67;
+        key1[4] = 0x89;
+        key1[5] = 0xAB;
+        key1[6] = 0xCD;
+        key1[7] = 0xEF;
     }
 
+    __syncthreads();
+    if (idx < *len) {
+        data_buf[threadIdx.x][threadIdx.y] = data[idx];
+        __syncthreads();
+        if (threadIdx.x == 0) {
+            des_key_setup(key1, schedule, DES_ENCRYPT);
+            des_crypt(data_buf[threadIdx.x], data_enc_block[threadIdx.x], schedule);
+
+            des_key_setup(key1, schedule, DES_DECRYPT);
+            des_crypt(data_enc_block[threadIdx.x], data_dec_block[threadIdx.x], schedule);
+        }
+        __syncthreads();
+        data_enc[idx] = data_enc_block[threadIdx.x][threadIdx.y];
+        data_dec[idx] = data_dec_block[threadIdx.x][threadIdx.y];
+    }
+
+}
+
+void print_error_message(cudaError_t err, const char *var, int type) {
+    if (err != cudaSuccess) {
+        if (type == ALLOC) {
+            fprintf(stderr, "Problemas na alocacao de %s\n", var);
+        } else {
+            fprintf(stderr, "Problemas na copia de %s\n", var);
+        }
+        exit(EXIT_FAILURE);
+    }
+}
+
+int main() {
+    BYTE *data;
+    BYTE *d_data = NULL;
+    BYTE *data_enc;
+    BYTE *d_data_enc = NULL;
+    BYTE *data_dec;
+    BYTE *d_data_dec = NULL;
+    size_t len;
+    size_t *d_len;
+    dim3 dimBlock(MAX_THREAD, MAX_THREAD);
+    dim3 dimGrid(N, N);
+    cudaError_t err = cudaSuccess;
+    
+    data = read_file("../sample_files/moby_dick.txt");
+    len = get_file_size();
+    
+    data_enc = (BYTE *) malloc(len * sizeof(BYTE));
+    data_dec = (BYTE *) malloc(len * sizeof(BYTE));
+
+    err = cudaMalloc(&d_data, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data", ALLOC);
+
+    err = cudaMalloc(&d_data_enc, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data_enc", ALLOC);
+
+    err = cudaMalloc(&d_data_dec, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data_dec", ALLOC);
+
+    err = cudaMalloc(&d_len, sizeof(size_t));
+    print_error_message(err, (const char*) "d_len", ALLOC);
+
+    err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char*) "d_data", COPY);
+
+     err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char*) "d_len", COPY);
+
+    des<<<dimGrid, dimBlock>>>(d_data, d_data_enc, d_data_dec, d_len); 
+
+    err = cudaMemcpy(data_enc, d_data_enc, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    print_error_message(err, (const char*) "data_enc", COPY);
+    
+    err = cudaMemcpy(data_dec, d_data_dec, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    print_error_message(err, (const char*) "data_dec", COPY);
+
+    FILE *file_enc = fopen("moby_dick_enc.txt", "wb");
+    FILE *file_dec = fopen("moby_dick_dec.txt", "wb");
+
+    fwrite(data_enc, len * sizeof(BYTE), 1, file_enc);
+    fwrite(data_dec, len * sizeof(BYTE), 1, file_dec);
+
+    fclose(file_enc);
+    fclose(file_dec);
+    free(data);
+    free(data_enc);
+    free(data_dec);
+    cudaFree(d_data);
+    cudaFree(d_data_enc);
+    cudaFree(d_data_dec);
+    cudaFree(d_len);
+
+    return 0;
 }

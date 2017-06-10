@@ -22,7 +22,7 @@ __device__ void des_key_setup(const BYTE key[], BYTE schedule[][6], DES_MODE mod
 
 __device__ void des_crypt(const BYTE in[], BYTE out[], const BYTE key[][6]);
 
-__global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len, int *N);
+__global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len);
 
 int test_des();
 
