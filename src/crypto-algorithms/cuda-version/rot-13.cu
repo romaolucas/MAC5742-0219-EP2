@@ -136,22 +136,34 @@ void enc_file(char *filename, char *enc_filename) {
 }
 
 
+void show_usage() {
+    printf("Uso: \n");
+    printf("Para encriptar um arquivo: ./rot-13 -e nome_arquivo arquivo_encriptado\n");
+    printf("Para rodar os testes: ./rot-13 -t\n");
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
-        printf("Uso: ./rot-13 modo\n");
-        printf("Para encriptar um arquivo: ./rot-13 -e nome_arquivo arquivo_encriptado\n");
-        printf("Para rodar os testes: ./rot-13 -t\n");
+        show_usage();
         exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "-e") == 0) {
+        if (argc != 4) {
+            show_usage();
+            exit(EXIT_FAILURE);
+        }
         enc_file(argv[2], argv[3]);
-    } else {
+    } else if (strcmp(argv[1], "-t") == 0) {
         int passed = test_rot_13();
         if (passed == TRUE) {
             printf("Todos os testes passaram!\n");
         }
+    } else {
+        printf("Opção inválida\n");
+        show_usage();
+        exit(EXIT_FAILURE);
     }
 
     return(0);
