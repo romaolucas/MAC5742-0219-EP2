@@ -63,7 +63,7 @@ __global__ void generate_key(BYTE* generated_key)
     err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
     print_error_message(err, (const char *) "d_key", ALLOC);
 
-    err = cudaMemcpy(d_key, (const void *) 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
 
     for (idx = 0; idx < 3; idx++)
@@ -125,7 +125,7 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, (const void *) 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
  
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
