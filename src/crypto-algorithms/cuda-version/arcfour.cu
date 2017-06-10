@@ -52,16 +52,16 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
     }
 }
 
-__device__ void generate_key(BYTE *generated_key) 
+__device__ void generate_key(BYTE generated_key) 
 {
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
     int idx; 
 
-    for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, (const char*) key[idx], strlen(key[idx]));
+    //for (idx = 0; idx < 3; idx++)
+        arcfour_key_setup(state, key[idx], strlen(key[idx]));
     
-    arcfour_generate_stream(state, generated_key, strlen(state));
+    //arcfour_generate_stream(state, generated_key, strlen(state));
 }
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
