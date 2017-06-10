@@ -17,4 +17,6 @@ void enc_file(char *filename, char *enc_filename);
 
 void print_error_message(cudaError_t err, const char *var, int type);
 
+void show_usage();
+
 #endif

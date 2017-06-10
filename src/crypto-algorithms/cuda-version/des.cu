@@ -302,7 +302,79 @@ void print_error_message(cudaError_t err, const char *var, int type) {
     }
 }
 
-int main() {
+int test_des() {
+    BYTE *data;
+    BYTE *d_data = NULL;
+    BYTE *data_enc;
+    BYTE *d_data_enc = NULL;
+    BYTE *data_dec;
+    BYTE *d_data_dec = NULL;
+    size_t len;
+    size_t *d_len;
+    dim3 dimGrid(N, N);
+    dim3 dimBlock(MAX_THREAD, MAX_THREAD);
+    cudaError_t err = cudaSuccess;
+    const char *samples[3] = {"../sample_files/moby_dick.txt", "../sample_files/king_james_bible.txt", "../sample_files/ulysses.txt"};
+    int passed = TRUE;
+    int i;
+    for (i = 0; i < 3; i++) {
+        printf("Testando arquivo %s\n", samples[i]); 
+        data = read_file((char *) samples[i]);
+        len = get_file_size();
+    
+        data_enc = (BYTE *) malloc(len * sizeof(BYTE));
+        data_dec = (BYTE *) malloc(len * sizeof(BYTE));
+
+        err = cudaMalloc(&d_data, len * sizeof(BYTE));
+        print_error_message(err, (const char*) "d_data", ALLOC);
+
+        err = cudaMalloc(&d_data_enc, len * sizeof(BYTE));
+        print_error_message(err, (const char*) "d_data_enc", ALLOC);
+
+        err = cudaMalloc(&d_data_dec, len * sizeof(BYTE));
+        print_error_message(err, (const char*) "d_data_dec", ALLOC);
+
+        err = cudaMalloc(&d_len, sizeof(size_t));
+        print_error_message(err, (const char*) "d_len", ALLOC);
+
+        err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
+        print_error_message(err, (const char*) "d_data", COPY);
+
+        err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
+        print_error_message(err, (const char*) "d_len", COPY);
+        des<<<dimGrid, dimBlock>>>(d_data, d_data_enc, d_data_dec, d_len); 
+    
+        cudaDeviceSynchronize();
+    
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
+            exit(EXIT_FAILURE);
+        }
+
+        err = cudaMemcpy(data_enc, d_data_enc, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+        print_error_message(err, (const char*) "data_enc", COPY);
+    
+        err = cudaMemcpy(data_dec, d_data_dec, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+        print_error_message(err, (const char*) "data_dec", COPY);
+        
+        passed = passed && !memcmp(data, data_dec, len * sizeof(BYTE));
+        if (passed == FALSE) {
+            fprintf(stderr, "Problema na decodificacao do %s\n", samples[i]);
+        }
+
+        free(data);
+        free(data_enc);
+        free(data_dec);
+        cudaFree(d_data);
+        cudaFree(d_len);
+        cudaFree(d_data_enc);
+        cudaFree(d_data_dec);
+    }
+    return passed;
+}
+
+void enc_dec_file(char *filename, char *enc_filename, char *dec_filename) {
     BYTE *data;
     BYTE *d_data = NULL;
     BYTE *data_enc;
@@ -315,7 +387,7 @@ int main() {
     dim3 dimBlock(MAX_THREAD, MAX_THREAD);
     cudaError_t err = cudaSuccess;
     
-    data = read_file("../sample_files/moby_dick.txt");
+    data = read_file(filename);
     len = get_file_size();
     
     data_enc = (BYTE *) malloc(len * sizeof(BYTE));
@@ -354,8 +426,8 @@ int main() {
     err = cudaMemcpy(data_dec, d_data_dec, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char*) "data_dec", COPY);
 
-    FILE *file_enc = fopen("moby_dick_enc.txt", "wb");
-    FILE *file_dec = fopen("moby_dick_dec.txt", "wb");
+    FILE *file_enc = fopen(enc_filename, "wb");
+    FILE *file_dec = fopen(dec_filename, "wb");
 
     fwrite(data_enc, len * sizeof(BYTE), 1, file_enc);
     fwrite(data_dec, len * sizeof(BYTE), 1, file_dec);
@@ -370,5 +442,32 @@ int main() {
     cudaFree(d_data_dec);
     cudaFree(d_len);
 
+
+}
+
+void show_usage() {
+    printf("Uso: \n");
+    printf("Para encriptar e decriptar um arquivo ./des -e nome_arquivo arquivo_encriptado arquivo_decriptado\n");
+    printf("Para rodar os testes: ./des -t\n");
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        show_usage();
+        exit(EXIT_FAILURE);
+    }
+
+    if (strcmp(argv[1], "-t") == 0) {
+        printf("Os testes: %s\n", test_des() ? "passaram" : "deram errado");
+    } else if (strcmp(argv[1], "-e") == 0) {
+        if (argc != 5) {
+            show_usage();
+            exit(EXIT_FAILURE);
+        }
+        enc_dec_file(argv[2], argv[3], argv[4]);
+    } else {
+        printf("Opção inválida\n");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }

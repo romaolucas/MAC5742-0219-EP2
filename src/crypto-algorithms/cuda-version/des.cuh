@@ -26,8 +26,10 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len);
 
 int test_des();
 
-void enc_file(char *filename, char *enc_filename);
+void enc_dec_file(char *filename, char *enc_filename, char *dec_filename);
 
 void print_error_message(cudaError_t err, const char *var, int type);
+
+void show_usage();
 
 #endif
