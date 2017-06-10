@@ -98,7 +98,9 @@ void enc_file(char *filename, char *enc_filename)
     data = read_file(filename);
     len = get_file_size();;
     
-    key = (BYTE *) malloc(1024 * sizeof(BYTE));
+    err = cudaMalloc(&key, 1024 * sizeof(BYTE));
+    print_error_message(err, (const char *) "key", ALLOC); 
+
     generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
     enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
@@ -117,7 +119,7 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
  
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
