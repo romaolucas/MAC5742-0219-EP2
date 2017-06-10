@@ -59,7 +59,7 @@ __device__ void generate_key(BYTE *generated_key)
     int idx; 
 
     for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, (const BYTE*) key[idx], strlen(key[idx]));
+        arcfour_key_setup((const BYTE*) state, (const BYTE*) key[idx], strlen(key[idx]));
     
     arcfour_generate_stream(state, generated_key, strlen(state));
 }
