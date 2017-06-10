@@ -9,7 +9,7 @@
 
 typedef unsigned char BYTE;
 
-void arcfour_key_setup(BYTE state[], const BYTE key[], int len);
+void arcfour_key_setup(BYTE state[], BYTE key[], int len);
 
 __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len);
 
