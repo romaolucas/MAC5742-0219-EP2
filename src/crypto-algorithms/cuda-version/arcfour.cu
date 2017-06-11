@@ -189,22 +189,41 @@ void enc_file(char *filename, char *enc_filename)
     cudaFree(d_len);
 }
 
+void show_usage() {
+    printf("Uso: \n");
+    printf("Para encriptar um arquivo: ./rot-13 -e nome_arquivo arquivo_encriptado\n");
+    printf("Para rodar os testes: ./rot-13 -t\n");
+    printf("Para testar decriptacao de um arquvio: ./rot-13 -tf nome_arquivo\n");
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
-        printf("Uso: ./arcfour modo\n");
-        printf("Para encriptar um arquivo: ./arcfour -e nome_arquivo arquivo_encriptado\n");
-        printf("Para rodar os testes: ./arcfour -t\n");
+        show_usage();
         exit(EXIT_FAILURE);
     }
-    
+
     if (strcmp(argv[1], "-e") == 0) {
-    enc_file(argv[2], argv[3]);
-    } else {
+        if (argc != 4) {
+            show_usage();
+            exit(EXIT_FAILURE);
+        }
+        enc_file(argv[2], argv[3]);
+    } else if (strcmp(argv[1], "-t") == 0) {
         int passed = test_arcfour();
         if (passed == TRUE) {
             printf("Todos os testes passaram!\n");
         }
+    } else if (strcmp(argv[1], "-tf") == 0) {
+        if (argc != 3) {
+            show_usage();
+            exit(EXIT_FAILURE);
+        }
+        enc_file(argv[2], NULL);
+    }else {
+        printf("Opção inválida\n");
+        show_usage();
+        exit(EXIT_FAILURE);
     }
 
     return(0);
