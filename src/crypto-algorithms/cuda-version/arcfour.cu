@@ -53,7 +53,7 @@ __device__ void arcfour_generate_stream(BYTE state[], BYTE out[], size_t len)
 }
 
 __global__ void generate_key(BYTE* generated_key) 
-{	
+{   
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
     int idx = 0;
@@ -61,10 +61,10 @@ __global__ void generate_key(BYTE* generated_key)
     for (idx = 0; idx < 3; idx++)
       arcfour_key_setup(state, key[idx], 3);
   
-    arcfour_generate_stream(state, generated_key, 256);
+    arcfour_generate_stream(state, generated_key, 256);;
 }
 
-__global__ void xor_encrypt(BYTE* data, BYTE* out,  BYTE* key, int* len) 
+__global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
 {
     int i;
 
@@ -98,12 +98,9 @@ void enc_file(char *filename, char *enc_filename)
     data = read_file(filename);
     len = get_file_size();;
     
-    err = cudaMalloc(&key, 1024 * sizeof(BYTE));
-    print_error_message(err, (const char *) "key", ALLOC); 
-
+    key = (BYTE *) malloc(1024 * sizeof(BYTE));
     generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
-    err = cudaMalloc(&enc_data, len * sizeof(BYTE));
-    print_error_message(err, (const char *) "enc_data", ALLOC); 
+    enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
     print_error_message(err, (const char *) "d_data", ALLOC); 
@@ -120,17 +117,16 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, (const void *) 1024, sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
-    
-    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, enc_data, d_key, d_len);
-    //xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(enc_data, d_data, d_key, d_len);
+ 
+    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
     
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
 
     FILE *enc_file = fopen(enc_filename, "wb");
-    fwrite(data, len * sizeof(BYTE), 1, enc_file); 
+    fwrite(enc_data, len * sizeof(BYTE), 1, enc_file); 
     free(enc_data);
     cudaFree(d_data);
     cudaFree(d_len);
@@ -144,9 +140,9 @@ int main(int argc, char *argv[])
         printf("Para rodar os testes: ./arcfour -t\n");
         exit(EXIT_FAILURE);
     }
-	
+    
     if (strcmp(argv[1], "-e") == 0) {
-	enc_file(argv[2], argv[3]);
+    enc_file(argv[2], argv[3]);
     } 
 
     return(0);
