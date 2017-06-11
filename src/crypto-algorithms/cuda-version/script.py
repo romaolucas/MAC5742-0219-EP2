@@ -19,6 +19,11 @@ def get_data_list(FI):
             data_list.append(data.copy())
     return data_list
 
+def write_to_output(FO, file_name, times):
+    import numpy as np
+    FO.write("Media dos tempos de {} : {}\n".format(file_name, np.mean(times)))
+    FO.write("Desvio padrao de {} : {}".format(file_name, np.std(times)))
+
 list_of_files = glob.glob('results/*.log')
 list_of_images = ['moby_dick', 'king_james_bible', 'hubble_1', 'mercury']
 
@@ -27,14 +32,17 @@ folder = ['results']
 file_times = {}
 for file_name in list_of_files:
     FI = open(file_name, 'r')
+    FO = open(file_name.replace('log', 'out'), 'w') 
     file_times[file_name] = [d['time'] for  d in get_data_list(FI)]
     file = (file_name.split('/')[1]).split('.')[0]
+    write_to_output(FO, file_name, file_times[file_name])
+    FO.close()
     FI.close()
     axes = plt.gca()
-    handles, labels = axes.get_legend_handles_labels()
-    plt.bar(range(len(list_of_images)), file_times[file_name], label=file)
+    axes.set_ylim([0,50])
     plt.title(file)
     plt.xlabel('Entrada')
     plt.ylabel('Tempo de Execucao (s)')
     plt.xticks(range(len(list_of_images)), list_of_images, size='small')
-    plt.savefig(file + '.png')
+    plt.bar(range(len(list_of_images)), file_times[file_name], label=file, color='b')
+    plt.savefig(file + '_seq.png')
