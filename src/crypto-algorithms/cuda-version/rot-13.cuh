@@ -15,6 +15,10 @@ int test_rot_13();
 
 void enc_file(char *filename, char *enc_filename);
 
+void enc_dec_file_test(char *filename);
+
 void print_error_message(cudaError_t err, const char *var, int type);
+
+void show_usage();
 
 #endif
