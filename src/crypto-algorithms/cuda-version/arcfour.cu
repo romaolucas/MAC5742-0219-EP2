@@ -177,7 +177,6 @@ void enc_file(char *filename, char *enc_filename)
     generate_key<<<1, 1>>>(d_key);
     
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
-    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);   
 
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
