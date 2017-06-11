@@ -66,10 +66,9 @@ __global__ void generate_key(BYTE* generated_key)
 
 __global__ void xor_encrypt(BYTE* data, BYTE* key, int* len) 
 {
-    int i;
-
-    for(i = 0; i < *len; i++) {
-      data[i] = data[i] ^ key[i % (sizeof(key)/sizeof(char))];
+    int idx = threadIdx.x + blockDim.x * blockIdx.x;
+    if ((int*) idx < len) {
+      data[idx] = data[idx] ^ key[idx % (sizeof(key)/sizeof(char))];
     }
 }
 
@@ -98,8 +97,9 @@ void enc_file(char *filename, char *enc_filename)
     data = read_file(filename);
     len = get_file_size();;
     
-    key = (BYTE *) malloc(1024 * sizeof(BYTE));
-    generate_key<<<N/NUM_THREADS, NUM_THREADS>>>(key);
+    err = cudaMalloc(&key, 1024* sizeof(BYTE));
+    print_error_message(err, (const char *) "key", ALLOC);
+    generate_key<<<1,1>>>(key);
     //enc_data = (BYTE *) malloc(len * sizeof(BYTE));
 
     err = cudaMalloc(&d_data, len * sizeof(BYTE));
@@ -117,7 +117,7 @@ void enc_file(char *filename, char *enc_filename)
     err = cudaMemcpy(d_len, &len, sizeof(int), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_len", COPY);
 
-    err = cudaMemcpy(d_key, key, sizeof(BYTE), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
     print_error_message(err, (const char *) "d_key", COPY);
  
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
@@ -125,8 +125,8 @@ void enc_file(char *filename, char *enc_filename)
     // err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     // print_error_message(err, (const char *) "enc_data", COPY);
 
-    // FILE *enc_file = fopen(enc_filename, "wb");
-    // fwrite(enc_data, len * sizeof(BYTE), 1, enc_file); 
+    FILE *enc_file = fopen(enc_filename, "wb");
+    //fwrite(d_data, 1024 * sizeof(BYTE), 1, enc_file); 
     // free(enc_data);
     cudaFree(d_data);
     cudaFree(d_len);
