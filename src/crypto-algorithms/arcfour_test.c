@@ -46,12 +46,12 @@ int rc4_test()
     return(pass);
 }
 
-BYTE *xor_encrypt(BYTE* input, BYTE* key) 
+BYTE *xor_encrypt(BYTE* input, BYTE* key, size_t len) 
 {
-    BYTE* output = (BYTE *) malloc(sizeof(BYTE) * strlen(input));;
+    BYTE* output = (BYTE *) malloc(sizeof(BYTE) * len);;
     int i;
 
-    for(i = 0; i < strlen(input); i++) {
+    for(i = 0; i < len; i++) {
       output[i] = input[i] ^ key[i % (sizeof(key)/sizeof(char))];
     }
 
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
     int stream_len[3] = {10,6,8};
     int idx;
-
+    size_t len;
     struct stat st;
     if (argc != 3) {
         printf("Uso: ./arcfour nome_arquivo nome_arquivo_criptografado\n");
@@ -83,12 +83,14 @@ int main(int argc, char *argv[])
     
     if (strcmp(argv[1], "-tf") == 0) {
         data = read_file(argv[2]);
-        output = xor_encrypt(data, generated_key);
-        output = xor_encrypt(output, generated_key);
-        assert(!memcmp(data, output, strlen(data) * sizeof(BYTE)));
+        len = get_file_size();
+        output = xor_encrypt(data, generated_key, len);
+        output = xor_encrypt(output, generated_key, len);
+        assert(!memcmp(data, output, len * sizeof(BYTE)));
     } else {
         data = read_file(argv[1]);
-        output = xor_encrypt(data, generated_key);
+        len = get_file_size();
+        output = xor_encrypt(data, generated_key, len);
         write_file(argv[2], output);
     }
     
