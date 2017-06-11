@@ -71,17 +71,26 @@ int main(int argc, char *argv[])
     struct stat st;
     if (argc != 3) {
         printf("Uso: ./arcfour nome_arquivo nome_arquivo_criptografado\n");
+        printf("Ou ./arcfour -tf nome_arquivo\n");
         exit(EXIT_FAILURE);
     }
-
+    
     data = read_file(argv[1]);
-
+    
     for (idx = 0; idx < 3; idx++)
         arcfour_key_setup(state, key[idx], strlen(key[idx]));
     
     arcfour_generate_stream(state, generated_key, strlen(state));
-    output = xor_encrypt(data, generated_key);
-    write_file(argv[2], output);
+    
+    if (strcmp(argv[1], "-tf") == 0) {
+        output = xor_encrypt(data, generated_key);
+        output = xor_encrypt(output, generated_key);
+        assert(!memcmp(data, output, len * sizeof(BYTE)));
+    } else {
+        output = xor_encrypt(data, generated_key);
+        write_file(argv[2], output);
+    }
+    
     free(data);
     free(output);
     
