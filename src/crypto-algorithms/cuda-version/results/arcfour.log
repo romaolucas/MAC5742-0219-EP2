@@ -1,0 +1,68 @@
+
+ Performance counter stats for './arcfour -tf ../sample_files/moby_dick.txt' (10 runs):
+
+        721,025601      task-clock (msec)         #    0,927 CPUs utilized            ( +-  0,72% )
+                66      context-switches          #    0,091 K/sec                    ( +-  2,98% )
+                14      cpu-migrations            #    0,019 K/sec                    ( +-  2,82% )
+             2.402      page-faults               #    0,003 M/sec                    ( +-  0,01% )
+     2.168.479.923      cycles                    #    3,007 GHz                      ( +-  1,48% )  (83,20%)
+       563.306.103      stalled-cycles-frontend   #   25,98% frontend cycles idle     ( +-  1,74% )  (83,30%)
+     1.113.389.979      stalled-cycles-backend    #   51,34% backend  cycles idle     ( +-  2,77% )  (33,72%)
+       861.445.157      instructions              #    0,40  insns per cycle        
+                                                  #    1,29  stalled cycles per insn  ( +-  1,70% )  (50,75%)
+       198.397.003      branches                  #  275,159 M/sec                    ( +-  1,15% )  (67,13%)
+         1.710.374      branch-misses             #    0,86% of all branches          ( +-  2,61% )  (83,37%)
+
+       0,777753841 seconds time elapsed                                          ( +-  1,05% )
+
+
+ Performance counter stats for './arcfour -tf ../sample_files/king_james_bible.txt' (10 runs):
+
+        837,904291      task-clock (msec)         #    0,942 CPUs utilized            ( +-  0,52% )
+                81      context-switches          #    0,097 K/sec                    ( +-  1,74% )
+                14      cpu-migrations            #    0,017 K/sec                    ( +-  2,89% )
+             2.674      page-faults               #    0,003 M/sec                    ( +-  3,19% )
+     2.714.695.426      cycles                    #    3,240 GHz                      ( +-  1,61% )  (83,26%)
+       612.957.480      stalled-cycles-frontend   #   22,58% frontend cycles idle     ( +-  1,69% )  (83,32%)
+     1.335.989.356      stalled-cycles-backend    #   49,21% backend  cycles idle     ( +-  2,76% )  (33,68%)
+     1.451.920.101      instructions              #    0,53  insns per cycle        
+                                                  #    0,92  stalled cycles per insn  ( +-  0,77% )  (50,66%)
+       337.405.036      branches                  #  402,677 M/sec                    ( +-  0,40% )  (67,04%)
+         1.947.374      branch-misses             #    0,58% of all branches          ( +-  1,11% )  (83,35%)
+
+       0,889577900 seconds time elapsed                                          ( +-  0,54% )
+
+
+ Performance counter stats for './arcfour -tf ../sample_files/hubble_1.tif' (10 runs):
+
+       1314,838823      task-clock (msec)         #    0,962 CPUs utilized            ( +-  0,49% )
+               120      context-switches          #    0,091 K/sec                    ( +-  0,73% )
+                14      cpu-migrations            #    0,010 K/sec                    ( +-  3,78% )
+             2.716      page-faults               #    0,002 M/sec                    ( +-  1,88% )
+     4.555.605.022      cycles                    #    3,465 GHz                      ( +-  0,45% )  (83,34%)
+       662.625.192      stalled-cycles-frontend   #   14,55% frontend cycles idle     ( +-  2,08% )  (83,39%)
+     1.636.490.861      stalled-cycles-backend    #   35,92% backend  cycles idle     ( +-  1,58% )  (33,41%)
+     4.785.759.895      instructions              #    1,05  insns per cycle        
+                                                  #    0,34  stalled cycles per insn  ( +-  0,28% )  (50,21%)
+     1.148.415.413      branches                  #  873,427 M/sec                    ( +-  0,16% )  (66,75%)
+         1.962.876      branch-misses             #    0,17% of all branches          ( +-  0,89% )  (83,30%)
+
+       1,366159519 seconds time elapsed                                          ( +-  0,47% )
+
+
+ Performance counter stats for './arcfour -tf ../sample_files/mercury.png' (10 runs):
+
+       1117,318946      task-clock (msec)         #    0,955 CPUs utilized            ( +-  0,60% )
+               103      context-switches          #    0,092 K/sec                    ( +-  1,46% )
+                14      cpu-migrations            #    0,012 K/sec                    ( +-  2,19% )
+             2.911      page-faults               #    0,003 M/sec                    ( +-  2,92% )
+     3.783.256.134      cycles                    #    3,386 GHz                      ( +-  0,85% )  (83,31%)
+       639.601.202      stalled-cycles-frontend   #   16,91% frontend cycles idle     ( +-  1,94% )  (83,40%)
+     1.487.201.125      stalled-cycles-backend    #   39,31% backend  cycles idle     ( +-  1,67% )  (33,46%)
+     3.386.103.588      instructions              #    0,90  insns per cycle        
+                                                  #    0,44  stalled cycles per insn  ( +-  0,42% )  (50,32%)
+       808.267.626      branches                  #  723,399 M/sec                    ( +-  0,30% )  (66,81%)
+         1.943.836      branch-misses             #    0,24% of all branches          ( +-  1,48% )  (83,25%)
+
+       1,169736249 seconds time elapsed                                          ( +-  0,58% )
+

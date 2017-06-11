@@ -1,0 +1,68 @@
+
+ Performance counter stats for './des -tf ../sample_files/moby_dick.txt' (10 runs):
+
+      21363,842057      task-clock (msec)         #    0,997 CPUs utilized            ( +-  0,03% )
+             2.099      context-switches          #    0,098 K/sec                    ( +-  1,73% )
+                16      cpu-migrations            #    0,001 K/sec                    ( +-  4,36% )
+             2.757      page-faults               #    0,129 K/sec                    ( +-  0,01% )
+    78.067.414.239      cycles                    #    3,654 GHz                      ( +-  0,32% )  (83,32%)
+    19.673.179.954      stalled-cycles-frontend   #   25,20% frontend cycles idle     ( +-  1,34% )  (83,34%)
+    24.446.313.039      stalled-cycles-backend    #   31,31% backend  cycles idle     ( +-  3,89% )  (33,36%)
+    62.655.849.255      instructions              #    0,80  insns per cycle        
+                                                  #    0,39  stalled cycles per insn  ( +-  2,43% )  (50,03%)
+    13.945.723.647      branches                  #  652,772 M/sec                    ( +-  2,44% )  (66,68%)
+        83.742.436      branch-misses             #    0,60% of all branches          ( +-  2,98% )  (83,32%)
+
+      21,424785731 seconds time elapsed                                          ( +-  0,05% )
+
+
+ Performance counter stats for './des -tf ../sample_files/king_james_bible.txt' (10 runs):
+
+      70593,244663      task-clock (msec)         #    0,999 CPUs utilized            ( +-  0,01% )
+             6.934      context-switches          #    0,098 K/sec                    ( +-  1,78% )
+                18      cpu-migrations            #    0,000 K/sec                    ( +-  5,74% )
+             3.091      page-faults               #    0,044 K/sec                    ( +-  5,19% )
+   252.159.999.778      cycles                    #    3,572 GHz                      ( +-  0,34% )  (83,33%)
+    62.059.269.756      stalled-cycles-frontend   #   24,61% frontend cycles idle     ( +-  1,58% )  (83,34%)
+    79.648.839.480      stalled-cycles-backend    #   31,59% backend  cycles idle     ( +-  3,87% )  (33,34%)
+   203.420.812.404      instructions              #    0,81  insns per cycle        
+                                                  #    0,39  stalled cycles per insn  ( +-  2,04% )  (50,01%)
+    45.240.923.098      branches                  #  640,868 M/sec                    ( +-  2,04% )  (66,67%)
+       292.847.755      branch-misses             #    0,65% of all branches          ( +-  5,88% )  (83,33%)
+
+      70,652683439 seconds time elapsed                                          ( +-  0,01% )
+
+
+ Performance counter stats for './des -tf ../sample_files/hubble_1.tif' (10 runs):
+
+     500346,435390      task-clock (msec)         #    1,000 CPUs utilized            ( +-  0,00% )
+            47.860      context-switches          #    0,096 K/sec                    ( +-  0,04% )
+                32      cpu-migrations            #    0,000 K/sec                    ( +-  5,49% )
+             2.475      page-faults               #    0,005 K/sec                    ( +-  2,31% )
+ 1.765.224.520.481      cycles                    #    3,528 GHz                      ( +-  0,15% )  (83,33%)
+   457.906.482.280      stalled-cycles-frontend   #   25,94% frontend cycles idle     ( +-  1,10% )  (83,34%)
+   455.307.086.124      stalled-cycles-backend    #   25,79% backend  cycles idle     ( +-  3,69% )  (33,33%)
+ 1.599.278.015.253      instructions              #    0,91  insns per cycle        
+                                                  #    0,29  stalled cycles per insn  ( +-  1,44% )  (50,00%)
+   355.540.965.720      branches                  #  710,590 M/sec                    ( +-  1,44% )  (66,66%)
+     2.353.560.217      branch-misses             #    0,66% of all branches          ( +-  8,11% )  (83,33%)
+
+     500,329879398 seconds time elapsed                                          ( +-  0,00% )
+
+
+ Performance counter stats for './des -tf ../sample_files/mercury.png' (10 runs):
+
+     321535,528089      task-clock (msec)         #    1,000 CPUs utilized            ( +-  0,00% )
+            30.746      context-switches          #    0,096 K/sec                    ( +-  0,01% )
+                22      cpu-migrations            #    0,000 K/sec                    ( +-  6,84% )
+             2.580      page-faults               #    0,008 K/sec                    ( +-  2,11% )
+ 1.142.917.619.843      cycles                    #    3,555 GHz                      ( +-  0,14% )  (83,33%)
+   293.520.110.633      stalled-cycles-frontend   #   25,68% frontend cycles idle     ( +-  1,60% )  (83,34%)
+   317.928.785.642      stalled-cycles-backend    #   27,82% backend  cycles idle     ( +-  3,80% )  (33,33%)
+   983.431.345.477      instructions              #    0,86  insns per cycle        
+                                                  #    0,32  stalled cycles per insn  ( +-  1,47% )  (50,00%)
+   218.725.160.494      branches                  #  680,252 M/sec                    ( +-  1,46% )  (66,66%)
+     1.364.859.107      branch-misses             #    0,62% of all branches          ( +-  6,49% )  (83,32%)
+
+     321,555415885 seconds time elapsed                                          ( +-  0,00% )
+
