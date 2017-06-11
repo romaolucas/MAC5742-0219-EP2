@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//assert func
+#include <assert.h>
+
 //strcmp
 #include <string.h>
 
@@ -181,9 +184,16 @@ void enc_file(char *filename, char *enc_filename)
 
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
-
-    FILE *enc_file = fopen(enc_filename, "wb");
-    fwrite(enc_data, len * sizeof(BYTE), 1, enc_file); 
+    
+    if (enc_filename != NULL) {
+       FILE *enc_file = fopen(enc_filename, "wb");
+       fwrite(enc_data, len * sizeof(BYTE), 1, enc_file); 
+    } else {
+       xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
+       err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+       print_error_message(err, (const char *) "enc_data", COPY);   
+       assert(!memcmp(data, enc_data, len * sizeof(BYTE)));
+    }
     free(enc_data);
     cudaFree(d_data);
     cudaFree(d_len);
@@ -191,9 +201,9 @@ void enc_file(char *filename, char *enc_filename)
 
 void show_usage() {
     printf("Uso: \n");
-    printf("Para encriptar um arquivo: ./rot-13 -e nome_arquivo arquivo_encriptado\n");
-    printf("Para rodar os testes: ./rot-13 -t\n");
-    printf("Para testar decriptacao de um arquvio: ./rot-13 -tf nome_arquivo\n");
+    printf("Para encriptar um arquivo: ./arcfour -e nome_arquivo arquivo_encriptado\n");
+    printf("Para rodar os testes: ./arcfour -t\n");
+    printf("Para testar decriptacao de um arquvio: ./arcfour -tf nome_arquivo\n");
 }
 
 int main(int argc, char *argv[])
