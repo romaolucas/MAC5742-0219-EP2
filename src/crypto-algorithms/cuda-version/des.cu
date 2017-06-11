@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//asserts for test func
+#include <assert.h>
+
 //strcmp
 #include <string.h>
 
@@ -19,7 +22,7 @@ extern "C" {
 }
 
 #define MAX_THREAD 8
-#define N 2048
+#define N 4096
 
 #define BITNUM(a,b,c) (((a[(b)/8] >> (7 - (b%8))) & 0x01) << (c))
 #define BITNUMINTR(a,b,c) ((((a) >> (31 - (b))) & 0x00000001) << (c))
@@ -263,19 +266,19 @@ __global__ void des(BYTE *data, BYTE *data_enc, BYTE *data_dec, size_t *len) {
     int blockidx = blockIdx.x + blockIdx.y * gridDim.x;
     int idx = blockidx * (blockDim.x + blockDim.y) + threadIdx.y * blockDim.x + threadIdx.x;
     
-    if (threadIdx.x == 0 && threadIdx.y == 0) {
-        key1[0] = 0x01;
-        key1[1] = 0x23;
-        key1[2] = 0x45;
-        key1[3] = 0x67;
-        key1[4] = 0x89;
-        key1[5] = 0xAB;
-        key1[6] = 0xCD;
-        key1[7] = 0xEF;
-    }
-    if (idx < *len) {
+   if (idx < *len) {
+        if (threadIdx.x == 0 && threadIdx.y == 0) {
+            key1[0] = 0x01;
+            key1[1] = 0x23;
+            key1[2] = 0x45;
+            key1[3] = 0x67;
+            key1[4] = 0x89;
+            key1[5] = 0xAB;
+            key1[6] = 0xCD;
+            key1[7] = 0xEF;
+        }
         data_buf[threadIdx.x][threadIdx.y] = data[idx];
-        __syncthreads();
+        //__syncthreads();
         if (threadIdx.y == 0) {
             des_key_setup(key1, schedule, DES_ENCRYPT);
             des_crypt(data_buf[threadIdx.x], data_enc_block[threadIdx.x], schedule);
@@ -443,10 +446,73 @@ void enc_dec_file(char *filename, char *enc_filename, char *dec_filename) {
 
 }
 
+void enc_dec_file_test(char *filename) {
+    BYTE *data;
+    BYTE *d_data = NULL;
+    BYTE *data_enc;
+    BYTE *d_data_enc = NULL;
+    BYTE *data_dec;
+    BYTE *d_data_dec = NULL;
+    size_t len;
+    size_t *d_len;
+    dim3 dimGrid(N, N);
+    dim3 dimBlock(MAX_THREAD, MAX_THREAD);
+    cudaError_t err = cudaSuccess;
+    
+    data = read_file(filename);
+    len = get_file_size();
+    data_enc = (BYTE *) malloc(len * sizeof(BYTE));
+    data_dec = (BYTE *) malloc(len * sizeof(BYTE));
+
+    err = cudaMalloc(&d_data, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data", ALLOC);
+
+    err = cudaMalloc(&d_data_enc, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data_enc", ALLOC);
+
+    err = cudaMalloc(&d_data_dec, len * sizeof(BYTE));
+    print_error_message(err, (const char*) "d_data_dec", ALLOC);
+
+    err = cudaMalloc(&d_len, sizeof(size_t));
+    print_error_message(err, (const char*) "d_len", ALLOC);
+
+    err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char*) "d_data", COPY);
+
+    err = cudaMemcpy(d_len, &len , sizeof(size_t), cudaMemcpyHostToDevice);
+    print_error_message(err, (const char*) "d_len", COPY);
+    des<<<dimGrid, dimBlock>>>(d_data, d_data_enc, d_data_dec, d_len); 
+    
+    cudaDeviceSynchronize();
+    
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+          fprintf(stderr, "ERROR: %s \n", cudaGetErrorString(err));
+          exit(EXIT_FAILURE);
+    }
+
+    err = cudaMemcpy(data_enc, d_data_enc, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    print_error_message(err, (const char*) "data_enc", COPY);
+    
+    err = cudaMemcpy(data_dec, d_data_dec, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+    print_error_message(err, (const char*) "data_dec", COPY);
+
+    assert(!memcmp(data, data_dec, len * sizeof(BYTE)));
+
+    free(data);
+    free(data_enc);
+    free(data_dec);
+    cudaFree(d_data);
+    cudaFree(d_len);
+    cudaFree(d_data_enc);
+    cudaFree(d_data_dec);
+}
+
 void show_usage() {
     printf("Uso: \n");
     printf("Para encriptar e decriptar um arquivo ./des -e nome_arquivo arquivo_encriptado arquivo_decriptado\n");
     printf("Para rodar os testes: ./des -t\n");
+    printf("Para verificar criptografia dum unico arquivo: ./des -tf nome_arquivo\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -463,8 +529,15 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         enc_dec_file(argv[2], argv[3], argv[4]);
+    } else if (strcmp(argv[1], "-tf") == 0) {
+        if (argc != 3) {
+            show_usage();
+            exit(EXIT_FAILURE);
+        }
+        enc_dec_file_test(argv[2]);
     } else {
         printf("Opção inválida\n");
+        show_usage();
         exit(EXIT_FAILURE);
     }
     return 0;

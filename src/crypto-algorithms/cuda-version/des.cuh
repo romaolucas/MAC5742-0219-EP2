@@ -28,6 +28,8 @@ int test_des();
 
 void enc_dec_file(char *filename, char *enc_filename, char *dec_filename);
 
+void enc_dec_file_test(char *filename);
+
 void print_error_message(cudaError_t err, const char *var, int type);
 
 void show_usage();
