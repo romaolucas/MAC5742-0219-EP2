@@ -56,10 +56,11 @@ __global__ void generate_key(BYTE* generated_key)
 {   
     BYTE state[256];
     BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    int key_size[3] = {3,4,5};
     int idx = 0;
 
     for (idx = 0; idx < 3; idx++)
-      arcfour_key_setup(state, key[idx], 3);
+      arcfour_key_setup(state, key[idx], key_size[idx]);
   
     arcfour_generate_stream(state, generated_key, 256);;
 }
