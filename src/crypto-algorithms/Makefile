@@ -18,4 +18,4 @@ rot-13: rot-13_test.c rot-13.c rot-13.h util.o
 
 .PHONY: clean
 clean:
-	rm arcfour md5 rot-13 sha1
+	rm arcfour des rot-13

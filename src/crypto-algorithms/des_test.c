@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "des.h"
+#include "util.h"
 
 /*********************** FUNCTION DEFINITIONS ***********************/
 int des_test()
@@ -79,42 +80,29 @@ int des_test()
     return(pass);
 }
 
-void enc_dec_file()
+void enc_dec_file(char *filename)
 {
     BYTE *data;
     BYTE *encrypted_data;
     BYTE *decrypted_data;
-    char *filename = "sample_files/hubble_1.tif";
 
     BYTE key1[DES_BLOCK_SIZE] = {0x01,0x23,0x45,0x67,0x89,0xAB,0xCD,0xEF};
     BYTE schedule[16][6];
+    size_t len;
 
-    struct stat st;
+    data = read_file(filename);
+    len = get_file_size();
 
-    if (stat(filename, &st) == 0){
-        data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
-    };
-
-    FILE *file = fopen(filename, "rb");
-
-    if(data != NULL && file){
-        int current_byte = 0;
-
-        while(fread(&data[current_byte], sizeof(BYTE), 1, file) == 1){
-            current_byte += 1;
-        };
-    };
-
-    encrypted_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
-    decrypted_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
+    encrypted_data = (BYTE *) malloc(sizeof(BYTE) * len);
+    decrypted_data = (BYTE *) malloc(sizeof(BYTE) * len);
 
     BYTE data_buf[DES_BLOCK_SIZE];
     BYTE data_enc[DES_BLOCK_SIZE];
     BYTE data_dec[DES_BLOCK_SIZE];
 
-    for(int i = 0; i < st.st_size; i++){
+    for(int i = 0; i < len; i++){
         for(int j = 0; j < DES_BLOCK_SIZE; j++){
-            if(i < st.st_size){
+            if(i < len){
                 data_buf[j] = data[i];
                 i++;
             };
@@ -128,7 +116,7 @@ void enc_dec_file()
 
         i -= DES_BLOCK_SIZE;
         for(int k = 0; k < DES_BLOCK_SIZE; k++){
-            if(i < st.st_size){
+            if(i < len){
                 encrypted_data[i] = data_enc[k];
                 decrypted_data[i] = data_dec[k];
                 i++;
@@ -138,19 +126,17 @@ void enc_dec_file()
         i--;
     };
 
-    FILE *enc_file = fopen("hubble_1_enc.tif", "wb+");
-    FILE *dec_file = fopen("hubble_1_dec.tif", "wb+");
-
-    fwrite(encrypted_data, sizeof(BYTE) * st.st_size, 1, enc_file);
-    fwrite(decrypted_data, sizeof(BYTE) * st.st_size, 1, dec_file);
-
-    fclose(enc_file);
-    fclose(dec_file);
+    free(decrypted_data);
+    free(encrypted_data);
+    free(data);
 };
 
-int main()
+int main(int argc, char *argv[])
 {
-    enc_dec_file();
-    printf("DES test: %s\n", des_test() ? "SUCCEEDED" : "FAILED");
+    if (argc == 3) {
+        enc_dec_file(argv[2]);
+    } else {
+        printf("DES test: %s\n", des_test() ? "SUCCEEDED" : "FAILED");
+    }
     return(0);
 }

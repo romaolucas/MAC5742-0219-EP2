@@ -17,6 +17,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <memory.h>
+#include <assert.h>
 #include "rot-13.h"
 #include "util.h"
 
@@ -42,27 +44,57 @@ int rot13_test()
 
 void dec_file(char *enc_filename, BYTE *data) {
     BYTE *enc_data;
-    struct stat st;
-    enc_data = (BYTE *) malloc(sizeof(BYTE) * st.st_size);
-    strcpy(enc_data, data);
+    size_t len;
+    len = get_file_size();
+    enc_data = (BYTE *) malloc(len * sizeof(BYTE));
+    memcpy(enc_data, data, len * sizeof(BYTE));
     rot13(enc_data);
     write_file(enc_filename, enc_data);
     free(enc_data);
 }
 
+void enc_dec_file(char *filename) {
+    BYTE *data;
+    BYTE *enc_data;
+    BYTE *dec_data;
+    size_t len;
+
+    data = read_file(filename);
+    len = get_file_size();
+
+    enc_data = (BYTE *) malloc(len * sizeof(BYTE));
+    memcpy(enc_data, data, len * sizeof(BYTE));
+
+    rot13(enc_data);
+
+    dec_data = (BYTE *) malloc(len * sizeof(BYTE));
+    memcpy(dec_data, enc_data, len * sizeof(BYTE));
+
+    rot13(dec_data);
+    assert(!memcmp(data, dec_data, len * sizeof(BYTE)));
+
+    free(data);
+    free(enc_data);
+    free(dec_data);
+}
+
 int main(int argc, char *argv[])
 {
-    //printf("ROT-13 tests: %s\n", rot13_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data;
 
     struct stat st;
-    if (argc != 3) {
+    if (argc < 2) {
         printf("Uso: ./rot-13 nome_arquivo nome_arquivo_criptografado\n");
+        printf("Ou ./rot-13 -tf nome_arquivo\n");
         exit(EXIT_FAILURE);
     }
 
-    data = read_file(argv[1]);
-    dec_file(argv[2], data);
-    free(data);
+    if (strcmp(argv[1], "-tf") == 0) {
+        enc_dec_file(argv[2]);
+    } else {
+        data = read_file(argv[1]);
+        dec_file(argv[2], data);
+        free(data);
+    }
     return(0);
 }
