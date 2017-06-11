@@ -84,6 +84,58 @@ void print_error_message(cudaError_t err, const char *var, int type) {
     }
 }
 
+int test_arcfour() {
+    cudaError_t err = cudaSuccess;
+    BYTE *data;
+    BYTE *d_data = NULL;
+    BYTE *d_key = NULL;
+    BYTE *dec_data;
+    BYTE *key;
+    size_t len;
+    size_t *d_len = NULL;
+    const char *samples[3] = {"../sample_files/moby_dick.txt", "../sample_files/hubble_1.tif", "../sample_files/mercury.png"};
+    int passed = TRUE;
+    int i;
+    for (i = 0; i < 3; i++) {
+        printf("Testando arquivo %s\n", samples[i]);
+        data = read_file((char *) samples[i]);
+        len = get_file_size();
+        key = (BYTE *) malloc(1024 * sizeof(BYTE));
+        dec_data = (BYTE *) malloc(len * sizeof(BYTE));
+
+        err = cudaMalloc(&d_data, len * sizeof(BYTE));
+        print_error_message(err, (const char *) "d_data", ALLOC); 
+
+        err = cudaMalloc(&d_len, sizeof(size_t));
+        print_error_message(err, (const char *) "d_len", ALLOC);
+
+        err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
+        print_error_message(err, (const char *) "d_data", COPY);
+
+        err = cudaMemcpy(d_len, &len, sizeof(size_t), cudaMemcpyHostToDevice);
+        print_error_message(err, (const char *) "d_len", COPY);
+     
+        err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
+        print_error_message(err, (const char *) "d_key", ALLOC);
+
+        generated_key<<<1,1>>>(d_key);
+        xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
+        xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
+
+        err = cudaMemcpy(dec_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
+        print_error_message(err, (const char *) "dec_data", COPY);
+    
+        passed = passed && !memcmp(data, dec_data, len * sizeof(BYTE));
+        if (passed == FALSE) {
+            fprintf(stderr, "Problema na decodificacao do %s\n", samples[i]);
+        }
+        free(dec_data);
+        cudaFree(d_data);
+        cudaFree(d_len);
+    }
+    return passed;
+}
+
 void enc_file(char *filename, char *enc_filename) 
 {
     BYTE *data;
@@ -122,7 +174,8 @@ void enc_file(char *filename, char *enc_filename)
     generate_key<<<1, 1>>>(d_key);
     
     xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
-    
+    xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);   
+
     err = cudaMemcpy(enc_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
     print_error_message(err, (const char *) "enc_data", COPY);
 
