@@ -109,18 +109,21 @@ int test_arcfour() {
         err = cudaMalloc(&d_len, sizeof(size_t));
         print_error_message(err, (const char *) "d_len", ALLOC);
 
+        err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
+        print_error_message(err, (const char *) "d_key", ALLOC);
+
         err = cudaMemcpy(d_data, data, len * sizeof(BYTE), cudaMemcpyHostToDevice);
         print_error_message(err, (const char *) "d_data", COPY);
 
         err = cudaMemcpy(d_len, &len, sizeof(size_t), cudaMemcpyHostToDevice);
         print_error_message(err, (const char *) "d_len", COPY);
-     
-        err = cudaMalloc(&d_key, 1024 * sizeof(BYTE));
-        print_error_message(err, (const char *) "d_key", ALLOC);
 
-        generated_key<<<1,1>>>(d_key);
+        err = cudaMemcpy(d_key, key, 1024 * sizeof(BYTE), cudaMemcpyHostToDevice);
+        print_error_message(err, (const char *) "d_key", COPY);
+
+        generate_key<<<1,1>>>(d_key);
         xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
-        xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);
+        xor_encrypt <<<N/NUM_THREADS, NUM_THREADS>>>(d_data, d_key, d_len);  
 
         err = cudaMemcpy(dec_data, d_data, len * sizeof(BYTE), cudaMemcpyDeviceToHost);
         print_error_message(err, (const char *) "dec_data", COPY);
@@ -197,7 +200,12 @@ int main(int argc, char *argv[])
     
     if (strcmp(argv[1], "-e") == 0) {
     enc_file(argv[2], argv[3]);
-    } 
+    } else {
+        int passed = test_arcfour();
+        if (passed == TRUE) {
+            printf("Todos os testes passaram!\n");
+        }
+    }
 
     return(0);
 }
