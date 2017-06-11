@@ -82,12 +82,12 @@ int main(int argc, char *argv[])
     arcfour_generate_stream(state, generated_key, strlen(state));
     
     if (strcmp(argv[1], "-tf") == 0) {
-        data = read_file(argv[1]);
+        data = read_file(argv[2]);
         output = xor_encrypt(data, generated_key);
         output = xor_encrypt(output, generated_key);
         assert(!memcmp(data, output, strlen(data) * sizeof(BYTE)));
     } else {
-        data = read_file(argv[2]);
+        data = read_file(argv[1]);
         output = xor_encrypt(data, generated_key);
         write_file(argv[2], output);
     }
