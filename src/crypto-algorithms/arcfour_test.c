@@ -58,29 +58,16 @@ BYTE *xor_encrypt(BYTE* input, BYTE* key)
     return output;
 }
 
-BYTE* generate_key(char* filename) {
-    BYTE generated_key[1024];
-    BYTE state[256];
-    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
-    int stream_len[3] = {10,6,8};
-    int idx;
-
-    data = read_file(filename);
-    
-    for (idx = 0; idx < 3; idx++)
-        arcfour_key_setup(state, key[idx], strlen(key[idx]));
-    
-    arcfour_generate_stream(state, generated_key, strlen(state));
-
-    return generated_key;
-}
-
 
 int main(int argc, char *argv[])
 {
     //printf("ARCFOUR tests: %s\n", rc4_test() ? "SUCCEEDED" : "FAILED");
     BYTE *data, *output;
     BYTE generated_key[1024];
+    BYTE state[256];
+    BYTE key[3][10] = {{"Key"}, {"Wiki"}, {"Secret"}};
+    int stream_len[3] = {10,6,8};
+    int idx;
 
     struct stat st;
     if (argc != 3) {
@@ -89,13 +76,18 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     
+    for (idx = 0; idx < 3; idx++)
+        arcfour_key_setup(state, key[idx], strlen(key[idx]));
+    
+    arcfour_generate_stream(state, generated_key, strlen(state));
+    
     if (strcmp(argv[1], "-tf") == 0) {
-        generated_key = generate_key(argv[2]);
+        data = read_file(argv[1]);
         output = xor_encrypt(data, generated_key);
         output = xor_encrypt(output, generated_key);
         assert(!memcmp(data, output, strlen(data) * sizeof(BYTE)));
     } else {
-        generated_key = generate_key(argv[1]);
+        data = read_file(argv[2]);
         output = xor_encrypt(data, generated_key);
         write_file(argv[2], output);
     }
