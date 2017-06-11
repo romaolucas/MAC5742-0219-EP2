@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 #include "arcfour.h"
 #include "util.h"
 
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
     if (strcmp(argv[1], "-tf") == 0) {
         output = xor_encrypt(data, generated_key);
         output = xor_encrypt(output, generated_key);
-        assert(!memcmp(data, output, len * sizeof(BYTE)));
+        assert(!memcmp(data, output, strlen(data) * sizeof(BYTE)));
     } else {
         output = xor_encrypt(data, generated_key);
         write_file(argv[2], output);
