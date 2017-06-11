@@ -92,7 +92,7 @@ int test_arcfour() {
     BYTE *dec_data;
     BYTE *key;
     size_t len;
-    size_t *d_len = NULL;
+    int *d_len = NULL;
     const char *samples[3] = {"../sample_files/moby_dick.txt", "../sample_files/hubble_1.tif", "../sample_files/mercury.png"};
     int passed = TRUE;
     int i;
